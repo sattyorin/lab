@@ -3,29 +3,27 @@ from typing import Dict, Tuple
 
 import gym
 import numpy as np
-from gym.envs.mujoco import mujoco_env
-from tomlkit import string
+from gym import utils
+from gym.envs.mujoco import MujocoEnv
+
+_FRAME_SKIP = 20
 
 
-class LinearActuatorArrayEnv(mujoco_env.MujocoEnv, gym.utils.EzPickle):
+class LinearActuatorArrayEnv(MujocoEnv, utils.EzPickle):
     def __init__(self) -> None:
 
-        xml_path = (
-            "envs/linear_actuator_array/xmls/linear_actuator_array-v0.xml"
-        )
-        xml_path = os.path.join(os.getcwd(), xml_path)
-        self.frame_skip = 20
-
-        super().__init__(
-            xml_path,
-            self.frame_skip,
+        xml_file: str = os.path.join(
+            os.getcwd(),
+            "envs/linear_actuator_array/xmls/linear_actuator_array-v0.xml",
         )
 
-        gym.utils.EzPickle.__init__(self)
+        utils.EzPickle.__init__(self)
+
+        MujocoEnv.__init__(self, xml_file, _FRAME_SKIP)
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, dict]:
 
-        self.sim.step()
+        self.do_simulation(action, self.frame_skip)
         observation = self._get_observation()
         reward, done = self._get_reward(observation)
         info: Dict[str, str] = {}

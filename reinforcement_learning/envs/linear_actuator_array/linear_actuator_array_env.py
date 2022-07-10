@@ -1,7 +1,7 @@
 import os
 from typing import Dict, Tuple
 
-import gym
+import mujoco
 import numpy as np
 from gym import utils
 from gym.envs.mujoco import MujocoEnv
@@ -15,6 +15,22 @@ class LinearActuatorArrayEnv(MujocoEnv, utils.EzPickle):
         xml_file: str = os.path.join(
             os.getcwd(),
             "envs/linear_actuator_array/xmls/linear_actuator_array-v0.xml",
+        )
+
+        model = mujoco.MjModel.from_xml_path(xml_file)
+        self.num_module = model.names.decode("UTF-8").count("module")
+        self.num_object = model.names.decode("UTF-8").count("object")
+        self.module_ids = np.array(
+            [
+                mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, f"module{i}")
+                for i in range(self.num_module)
+            ]
+        )
+        self.object_ids = np.array(
+            [
+                mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, f"object{i}")
+                for i in range(self.num_object)
+            ]
         )
 
         utils.EzPickle.__init__(self)
@@ -36,8 +52,12 @@ class LinearActuatorArrayEnv(MujocoEnv, utils.EzPickle):
 
     def _get_observation(self) -> np.ndarray:
 
-        observation = np.array([])
-        return observation
+        modules = np.array(self.data.xpos[self.module_ids, 2])  # 2: z
+        objects = np.array(self.data.xpos[self.object_ids, 2])
+
+        return np.concatenate(
+            [modules, objects, np.array([self.dt])], dtype=float
+        )
 
     def _get_reward(self, observation: np.ndarray) -> Tuple[float, bool]:
 

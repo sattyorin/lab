@@ -7,6 +7,6 @@ if __name__ == "__main__":
     sim = mujoco_py.MjSim(model)
     viewer = mujoco_py.MjViewer(sim)
 
-    for i in range(1000):
+    for _ in range(1000):
         sim.step()
         viewer.render()

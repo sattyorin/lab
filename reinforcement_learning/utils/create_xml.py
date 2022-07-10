@@ -1,4 +1,5 @@
 import argparse
+import math
 
 """
 TODO(sara): write a naming rules
@@ -96,13 +97,47 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def get_modules(column: int, row: int, size: float) -> str:
+
+    modules: str = ""
+    margin = size / 5
+
+    def get_min(row_column: int):
+        if row_column % 2 == 0:
+            return -1 * (
+                (row_column / 2 - 1) * (size + margin) + (size + margin) / 2
+            )
+        else:
+            return -1 * (math.floor(row_column / 2) * (size + margin))
+
+    min_x = get_min(column)
+    min_y = get_min(row)
+    for i in range(column):
+        for j in range(row):
+            x = round(min_x + i * (size + margin), 4)
+            y = round(min_y + j * (size + margin), 4)
+            modules += get_module(i * row + j, x, y, size / 2, size / 2)
+    return modules
+
+
+def get_motors(num_motor: int) -> str:
+    motors = ""
+    for i in range(num_motor):
+        motors += get_motor(i)
+    return motors
+
+
 def main() -> None:
     args = parse_args()
-    module: str = get_module(0, 0.0, 0.0)
-    body: str = get_palm(module, 4.0)
+
+    column = 4
+    row = 3
+
+    modules: str = get_modules(column, row, 0.1)
+    body: str = get_palm(modules, 4.0)
     objects: str = get_object(0, 0.0, 0.0, 6.5, 0.1)
     worldbody: str = get_worldbody(get_light(), objects, get_floor(), body)
-    actuator: str = get_actuator(get_motor(0))
+    actuator: str = get_actuator(get_motors(row * column))
     mujoco: str = get_mujoco(args.path, worldbody, actuator)
     with open(args.path, mode="w") as f:
         f.write(get_xml() + mujoco)

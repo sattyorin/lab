@@ -6,6 +6,8 @@ import numpy as np
 from gym import utils
 from gym.envs.mujoco import MujocoEnv
 
+import envs.linear_actuator_array.linear_actuator_array_config as config
+
 _FRAME_SKIP = 20
 
 
@@ -115,7 +117,12 @@ class LinearActuatorArrayEnv(MujocoEnv, utils.EzPickle):
 
     def _get_reward(self, observation: np.ndarray) -> Tuple[float, bool]:
 
-        reward = 0.0
         done = False
+        if max(
+            config.palm_height
+            > observation[self.num_module : self.num_module + self.num_object]
+        ):
+            done = True
+        reward = 0.0
 
         return reward, done

@@ -1,5 +1,8 @@
 <?xml version="1.0"?>
 <mujoco model="xmls/linear_actuator_array-v0.xml">
+  <default>
+    <joint limited='true' />
+  </default>
   <worldbody>
     <light name="light0" directional="true" diffuse=".3 .3 .3" pos="-1 -1 1" dir="1 1 -1" />
     <light name="light1" directional="true" diffuse=".3 .3 .3" pos="1 -1 1" dir="-1 1 -1" />

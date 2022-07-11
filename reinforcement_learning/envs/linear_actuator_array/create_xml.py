@@ -12,10 +12,16 @@ def get_xml() -> str:
     return '<?xml version="1.0"?>\n'
 
 
-def get_mujoco(model_name: str, worldbody: str, actuator: str) -> str:
+def get_mujoco(
+    model_name: str, default: str, worldbody: str, actuator: str
+) -> str:
     mujoco: str = f'<mujoco model="{model_name}">\n'
     end_mujoco: str = "</mujoco>\n"
-    return mujoco + worldbody + actuator + end_mujoco
+    return mujoco + default + worldbody + actuator + end_mujoco
+
+
+def get_default():
+    return "<default>\n<joint limited='true' />\n</default>\n"
 
 
 def get_worldbody(light: str, objects: str, floor: str, body: str) -> str:
@@ -146,7 +152,7 @@ def main() -> None:
     actuator: str = get_actuator(
         get_motors(config.module_column * config.module_row)
     )
-    mujoco: str = get_mujoco(args.path, worldbody, actuator)
+    mujoco: str = get_mujoco(args.path, get_default(), worldbody, actuator)
     with open(args.path, mode="w") as f:
         f.write(get_xml() + mujoco)
 

@@ -41,8 +41,10 @@ def get_object(
 ) -> str:
     body = f'<body name="object{object_id}" \
         pos="{position_x} {position_y} {position_z}">\n'
-    freejoint = "<freejoint />\n"
-    sphere = f'<geom name="sphere{object_id}" type="sphere" size="{size}" />\n'
+    freejoint = f'<freejoint name="object{object_id}_joint"/>\n'
+    sphere = (
+        f'<geom name="object{object_id}_geom" type="sphere" size="{size}" />\n'
+    )
     end_body = "</body>\n"
     return body + freejoint + sphere + end_body
 
@@ -69,9 +71,9 @@ def get_module(
     body: str = (
         f'<body name="module{module_id}" pos="{position_x} {position_y} 0">\n'
     )
-    geom: str = f'<geom name="box{module_id}" type="box" \
+    geom: str = f'<geom name="module{module_id}_geom" type="box" \
         size="{size_x} {size_y} {size_z}" />\n'
-    joint: str = f'<joint name="joint{module_id}" \
+    joint: str = f'<joint name="module{module_id}_joint" \
         type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0" damping="10000" />\n'
     end_body: str = "</body>\n"
     return body + geom + joint + end_body
@@ -84,7 +86,7 @@ def get_actuator(motors: str) -> str:
 
 
 def get_motor(motor_id: int) -> str:
-    return f'<motor name="motor{motor_id}" gear="20000" joint="joint{motor_id}" />\n'
+    return f'<motor name="motor{motor_id}" gear="20000" joint="module{motor_id}_joint" />\n'
 
 
 def parse_args() -> argparse.Namespace:

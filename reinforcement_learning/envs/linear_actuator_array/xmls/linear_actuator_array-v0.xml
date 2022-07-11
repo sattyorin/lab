@@ -5,85 +5,85 @@
     <light name="light1" directional="true" diffuse=".3 .3 .3" pos="1 -1 1" dir="-1 1 -1" />
     <light name="light2" directional="true" diffuse=".3 .3 .3" pos="0 1 1" dir="0 -1 -1" />
     <body name="object0" pos="0.0 0.0 6.5">
-      <freejoint />
-      <geom name="sphere0" type="sphere" size="0.1" />
+      <freejoint name="object0_joint" />
+      <geom name="object0_geom" type="sphere" size="0.1" />
     </body>
     <geom name="floor" pos="0 0 0" size="5.0 5.0 .1" type="plane" condim="3" />
     <body name="palm" pos="0 0 4.0">
       <body name="module0" pos="-0.18 -0.12 0">
-        <geom name="box0" type="box" size="0.05 0.05 0.4" />
-        <joint name="joint0" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
+        <geom name="module0_geom" type="box" size="0.05 0.05 0.4" />
+        <joint name="module0_joint" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
         damping="10000" />
       </body>
       <body name="module1" pos="-0.18 0.0 0">
-        <geom name="box1" type="box" size="0.05 0.05 0.4" />
-        <joint name="joint1" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
+        <geom name="module1_geom" type="box" size="0.05 0.05 0.4" />
+        <joint name="module1_joint" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
         damping="10000" />
       </body>
       <body name="module2" pos="-0.18 0.12 0">
-        <geom name="box2" type="box" size="0.05 0.05 0.4" />
-        <joint name="joint2" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
+        <geom name="module2_geom" type="box" size="0.05 0.05 0.4" />
+        <joint name="module2_joint" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
         damping="10000" />
       </body>
       <body name="module3" pos="-0.06 -0.12 0">
-        <geom name="box3" type="box" size="0.05 0.05 0.4" />
-        <joint name="joint3" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
+        <geom name="module3_geom" type="box" size="0.05 0.05 0.4" />
+        <joint name="module3_joint" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
         damping="10000" />
       </body>
       <body name="module4" pos="-0.06 0.0 0">
-        <geom name="box4" type="box" size="0.05 0.05 0.4" />
-        <joint name="joint4" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
+        <geom name="module4_geom" type="box" size="0.05 0.05 0.4" />
+        <joint name="module4_joint" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
         damping="10000" />
       </body>
       <body name="module5" pos="-0.06 0.12 0">
-        <geom name="box5" type="box" size="0.05 0.05 0.4" />
-        <joint name="joint5" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
+        <geom name="module5_geom" type="box" size="0.05 0.05 0.4" />
+        <joint name="module5_joint" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
         damping="10000" />
       </body>
       <body name="module6" pos="0.06 -0.12 0">
-        <geom name="box6" type="box" size="0.05 0.05 0.4" />
-        <joint name="joint6" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
+        <geom name="module6_geom" type="box" size="0.05 0.05 0.4" />
+        <joint name="module6_joint" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
         damping="10000" />
       </body>
       <body name="module7" pos="0.06 0.0 0">
-        <geom name="box7" type="box" size="0.05 0.05 0.4" />
-        <joint name="joint7" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
+        <geom name="module7_geom" type="box" size="0.05 0.05 0.4" />
+        <joint name="module7_joint" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
         damping="10000" />
       </body>
       <body name="module8" pos="0.06 0.12 0">
-        <geom name="box8" type="box" size="0.05 0.05 0.4" />
-        <joint name="joint8" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
+        <geom name="module8_geom" type="box" size="0.05 0.05 0.4" />
+        <joint name="module8_joint" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
         damping="10000" />
       </body>
       <body name="module9" pos="0.18 -0.12 0">
-        <geom name="box9" type="box" size="0.05 0.05 0.4" />
-        <joint name="joint9" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
+        <geom name="module9_geom" type="box" size="0.05 0.05 0.4" />
+        <joint name="module9_joint" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
         damping="10000" />
       </body>
       <body name="module10" pos="0.18 0.0 0">
-        <geom name="box10" type="box" size="0.05 0.05 0.4" />
-        <joint name="joint10" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
+        <geom name="module10_geom" type="box" size="0.05 0.05 0.4" />
+        <joint name="module10_joint" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
         damping="10000" />
       </body>
       <body name="module11" pos="0.18 0.12 0">
-        <geom name="box11" type="box" size="0.05 0.05 0.4" />
-        <joint name="joint11" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
+        <geom name="module11_geom" type="box" size="0.05 0.05 0.4" />
+        <joint name="module11_joint" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
         damping="10000" />
       </body>
     </body>
   </worldbody>
   <actuator>
-    <motor name="motor0" gear="20000" joint="joint0" />
-    <motor name="motor1" gear="20000" joint="joint1" />
-    <motor name="motor2" gear="20000" joint="joint2" />
-    <motor name="motor3" gear="20000" joint="joint3" />
-    <motor name="motor4" gear="20000" joint="joint4" />
-    <motor name="motor5" gear="20000" joint="joint5" />
-    <motor name="motor6" gear="20000" joint="joint6" />
-    <motor name="motor7" gear="20000" joint="joint7" />
-    <motor name="motor8" gear="20000" joint="joint8" />
-    <motor name="motor9" gear="20000" joint="joint9" />
-    <motor name="motor10" gear="20000" joint="joint10" />
-    <motor name="motor11" gear="20000" joint="joint11" />
+    <motor name="motor0" gear="20000" joint="module0_joint" />
+    <motor name="motor1" gear="20000" joint="module1_joint" />
+    <motor name="motor2" gear="20000" joint="module2_joint" />
+    <motor name="motor3" gear="20000" joint="module3_joint" />
+    <motor name="motor4" gear="20000" joint="module4_joint" />
+    <motor name="motor5" gear="20000" joint="module5_joint" />
+    <motor name="motor6" gear="20000" joint="module6_joint" />
+    <motor name="motor7" gear="20000" joint="module7_joint" />
+    <motor name="motor8" gear="20000" joint="module8_joint" />
+    <motor name="motor9" gear="20000" joint="module9_joint" />
+    <motor name="motor10" gear="20000" joint="module10_joint" />
+    <motor name="motor11" gear="20000" joint="module11_joint" />
   </actuator>
 </mujoco>

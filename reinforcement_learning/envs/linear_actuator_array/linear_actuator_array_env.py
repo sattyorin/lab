@@ -17,6 +17,27 @@ class LinearActuatorArrayEnv(MujocoEnv, utils.EzPickle):
             "envs/linear_actuator_array/xmls/linear_actuator_array-v0.xml",
         )
 
+        import mujoco_py  # TODO(sara): use only mujoco
+
+        py_model = mujoco_py.load_model_from_path(xml_file)
+
+        self.num_module = sum(n.count("module") for n in py_model.body_names)
+        self.num_object = sum(n.count("object") for n in py_model.body_names)
+
+        self.module_ids = np.array(
+            [
+                py_model.body_name2id(f"module{i}")
+                for i in range(self.num_module)
+            ]
+        )
+        self.object_ids = np.array(
+            [
+                py_model.body_name2id(f"object{i}")
+                for i in range(self.num_object)
+            ]
+        )
+
+        """ use mujoco
         model = mujoco.MjModel.from_xml_path(xml_file)
         self.num_module = model.names.decode("UTF-8").count("module")
         self.num_object = model.names.decode("UTF-8").count("object")
@@ -32,6 +53,29 @@ class LinearActuatorArrayEnv(MujocoEnv, utils.EzPickle):
                 for i in range(self.num_object)
             ]
         )
+        """
+
+        self.range_x, self.range_y = (
+            py_model.body_pos[self.module_ids[-1], 0:2]
+            + py_model.geom_size[py_model.geom_name2id("object0_geom"), 0:2]
+        )
+
+        """ use mujoco
+        self.range_x, self.range_y = (
+            model.body_pos[self.module_ids[-1], 0:2]
+            + model.geom_size[
+                mujoco.mj_name2id(
+                    model, mujoco.mjtObj.mjOBJ_GEOM, "object0_geom"
+                ),
+                0:2,
+            ]
+        )
+        """
+
+        self.object_qpos_addrs = [
+            py_model.get_joint_qpos_addr(f"object{i}_joint")[0]
+            for i in range(self.num_object)
+        ]
 
         utils.EzPickle.__init__(self)
 
@@ -47,6 +91,18 @@ class LinearActuatorArrayEnv(MujocoEnv, utils.EzPickle):
         return observation, reward, done, info
 
     def reset_model(self) -> np.ndarray:
+
+        mujoco.mj_resetData(self.model, self.data)
+        mujoco.mj_forward(self.model, self.data)
+
+        for object_addr in self.object_qpos_addrs:
+            self.data.qpos[object_addr] = np.random.uniform(
+                -self.range_x, self.range_x, size=self.num_object
+            )
+            self.data.qpos[object_addr + 1] = np.random.uniform(
+                -self.range_y, self.range_y, size=self.num_object
+            )
+        mujoco.mj_forward(self.model, self.data)
 
         return self._get_observation()
 

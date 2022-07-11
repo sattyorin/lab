@@ -15,62 +15,62 @@
     <body name="palm" pos="0 0 4.0">
       <body name="module0" pos="-0.18 -0.12 0">
         <geom name="module0_geom" type="box" size="0.05" fromto="0 0 0 0 0 -0.4" />
-        <joint name="module0_joint" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
+        <joint name="module0_joint" type="slide" pos="0 0 0" axis="0 0 1" range="0 0.01"
         damping="10000" />
       </body>
       <body name="module1" pos="-0.18 0.0 0">
         <geom name="module1_geom" type="box" size="0.05" fromto="0 0 0 0 0 -0.4" />
-        <joint name="module1_joint" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
+        <joint name="module1_joint" type="slide" pos="0 0 0" axis="0 0 1" range="0 0.01"
         damping="10000" />
       </body>
       <body name="module2" pos="-0.18 0.12 0">
         <geom name="module2_geom" type="box" size="0.05" fromto="0 0 0 0 0 -0.4" />
-        <joint name="module2_joint" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
+        <joint name="module2_joint" type="slide" pos="0 0 0" axis="0 0 1" range="0 0.01"
         damping="10000" />
       </body>
       <body name="module3" pos="-0.06 -0.12 0">
         <geom name="module3_geom" type="box" size="0.05" fromto="0 0 0 0 0 -0.4" />
-        <joint name="module3_joint" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
+        <joint name="module3_joint" type="slide" pos="0 0 0" axis="0 0 1" range="0 0.01"
         damping="10000" />
       </body>
       <body name="module4" pos="-0.06 0.0 0">
         <geom name="module4_geom" type="box" size="0.05" fromto="0 0 0 0 0 -0.4" />
-        <joint name="module4_joint" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
+        <joint name="module4_joint" type="slide" pos="0 0 0" axis="0 0 1" range="0 0.01"
         damping="10000" />
       </body>
       <body name="module5" pos="-0.06 0.12 0">
         <geom name="module5_geom" type="box" size="0.05" fromto="0 0 0 0 0 -0.4" />
-        <joint name="module5_joint" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
+        <joint name="module5_joint" type="slide" pos="0 0 0" axis="0 0 1" range="0 0.01"
         damping="10000" />
       </body>
       <body name="module6" pos="0.06 -0.12 0">
         <geom name="module6_geom" type="box" size="0.05" fromto="0 0 0 0 0 -0.4" />
-        <joint name="module6_joint" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
+        <joint name="module6_joint" type="slide" pos="0 0 0" axis="0 0 1" range="0 0.01"
         damping="10000" />
       </body>
       <body name="module7" pos="0.06 0.0 0">
         <geom name="module7_geom" type="box" size="0.05" fromto="0 0 0 0 0 -0.4" />
-        <joint name="module7_joint" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
+        <joint name="module7_joint" type="slide" pos="0 0 0" axis="0 0 1" range="0 0.01"
         damping="10000" />
       </body>
       <body name="module8" pos="0.06 0.12 0">
         <geom name="module8_geom" type="box" size="0.05" fromto="0 0 0 0 0 -0.4" />
-        <joint name="module8_joint" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
+        <joint name="module8_joint" type="slide" pos="0 0 0" axis="0 0 1" range="0 0.01"
         damping="10000" />
       </body>
       <body name="module9" pos="0.18 -0.12 0">
         <geom name="module9_geom" type="box" size="0.05" fromto="0 0 0 0 0 -0.4" />
-        <joint name="module9_joint" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
+        <joint name="module9_joint" type="slide" pos="0 0 0" axis="0 0 1" range="0 0.01"
         damping="10000" />
       </body>
       <body name="module10" pos="0.18 0.0 0">
         <geom name="module10_geom" type="box" size="0.05" fromto="0 0 0 0 0 -0.4" />
-        <joint name="module10_joint" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
+        <joint name="module10_joint" type="slide" pos="0 0 0" axis="0 0 1" range="0 0.01"
         damping="10000" />
       </body>
       <body name="module11" pos="0.18 0.12 0">
         <geom name="module11_geom" type="box" size="0.05" fromto="0 0 0 0 0 -0.4" />
-        <joint name="module11_joint" type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0"
+        <joint name="module11_joint" type="slide" pos="0 0 0" axis="0 0 1" range="0 0.01"
         damping="10000" />
       </body>
     </body>

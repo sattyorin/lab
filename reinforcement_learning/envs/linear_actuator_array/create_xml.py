@@ -79,7 +79,7 @@ def get_module(
     geom: str = f'<geom name="module{module_id}_geom" type="box" \
         size="{size_xy}" fromto="0 0 0 0 0 -{size_z}" />\n'
     joint: str = f'<joint name="module{module_id}_joint" \
-        type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0" damping="10000" />\n'
+        type="slide" pos="0 0 0" axis="0 0 1" range="0 0.01" damping="10000" />\n'
     end_body: str = "</body>\n"
     return body + geom + joint + end_body
 

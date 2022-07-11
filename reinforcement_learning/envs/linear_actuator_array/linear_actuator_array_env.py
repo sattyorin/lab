@@ -39,8 +39,6 @@ class LinearActuatorArrayEnv(MujocoEnv, utils.EzPickle):
 
         """ use mujoco
         model = mujoco.MjModel.from_xml_path(xml_file)
-        self.num_module = model.names.decode("UTF-8").count("module")
-        self.num_object = model.names.decode("UTF-8").count("object")
         self.module_ids = np.array(
             [
                 mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, f"module{i}")

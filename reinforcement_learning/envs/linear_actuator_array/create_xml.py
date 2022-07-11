@@ -1,6 +1,8 @@
 import argparse
 import math
 
+import linear_actuator_array_config as config
+
 """
 TODO(sara): write a naming rules
 """
@@ -37,14 +39,12 @@ def get_object(
     position_x: float,
     position_y: float,
     position_z: float,
-    size: float,
+    diameter: float,
 ) -> str:
     body = f'<body name="object{object_id}" \
         pos="{position_x} {position_y} {position_z}">\n'
     freejoint = f'<freejoint name="object{object_id}_joint"/>\n'
-    sphere = (
-        f'<geom name="object{object_id}_geom" type="sphere" size="{size}" />\n'
-    )
+    sphere = f'<geom name="object{object_id}_geom" type="sphere" size="{diameter/2}" />\n'
     end_body = "</body>\n"
     return body + freejoint + sphere + end_body
 
@@ -64,15 +64,14 @@ def get_module(
     module_id: int,
     position_x: float,
     position_y: float,
-    size_x: float = 0.05,
-    size_y: float = 0.05,
+    size_xy: float,
     size_z: float = 0.4,
 ) -> str:
     body: str = (
         f'<body name="module{module_id}" pos="{position_x} {position_y} 0">\n'
     )
     geom: str = f'<geom name="module{module_id}_geom" type="box" \
-        size="{size_x} {size_y} {size_z}" />\n'
+        size="{size_xy}" fromto="0 0 0 0 0 -{size_z}" />\n'
     joint: str = f'<joint name="module{module_id}_joint" \
         type="slide" pos="0 0 0" axis="0 0 1" range="-0.01 0" damping="10000" />\n'
     end_body: str = "</body>\n"
@@ -94,7 +93,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "-p",
         "--path",
-        default="envs/linear_actuator_array/xmls/linear_actuator_array-v0.xml",
+        default="xmls/linear_actuator_array-v0.xml",
     )
     return parser.parse_args()
 
@@ -118,7 +117,7 @@ def get_modules(column: int, row: int, size: float) -> str:
         for j in range(row):
             x = round(min_x + i * (size + margin), 4)
             y = round(min_y + j * (size + margin), 4)
-            modules += get_module(i * row + j, x, y, size / 2, size / 2)
+            modules += get_module(i * row + j, x, y, size / 2)
     return modules
 
 
@@ -132,14 +131,21 @@ def get_motors(num_motor: int) -> str:
 def main() -> None:
     args = parse_args()
 
-    column = 4
-    row = 3
-
-    modules: str = get_modules(column, row, 0.1)
-    body: str = get_palm(modules, 4.0)
-    objects: str = get_object(0, 0.0, 0.0, 6.5, 0.1)
+    modules: str = get_modules(
+        config.module_column, config.module_row, config.module_length_of_a_side
+    )
+    body: str = get_palm(modules, config.palm_height)
+    objects: str = get_object(
+        0,
+        0.0,
+        0.0,
+        round(config.palm_height + config.diameter_object / 2 + 0.05, 4),
+        config.diameter_object,
+    )
     worldbody: str = get_worldbody(get_light(), objects, get_floor(), body)
-    actuator: str = get_actuator(get_motors(row * column))
+    actuator: str = get_actuator(
+        get_motors(config.module_column * config.module_row)
+    )
     mujoco: str = get_mujoco(args.path, worldbody, actuator)
     with open(args.path, mode="w") as f:
         f.write(get_xml() + mujoco)

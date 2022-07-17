@@ -24,7 +24,7 @@ def get_mujoco(
     return mujoco + option + default + worldbody + actuator + end_mujoco
 
 
-def get_default():
+def get_default() -> str:
     return "<default>\n<joint limited='true' />\n</default>\n"
 
 
@@ -114,7 +114,7 @@ def get_modules(column: int, row: int, size: float) -> str:
     modules: str = ""
     margin = size / 5
 
-    def get_min(row_column: int):
+    def get_min(row_column: int) -> float:
         if row_column % 2 == 0:
             return -1 * (
                 (row_column / 2 - 1) * (size + margin) + (size + margin) / 2

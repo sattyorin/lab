@@ -106,7 +106,9 @@ class LinearActuatorArrayEnv(MujocoEnv, utils.EzPickle):
             **kwargs,
         )
 
-    def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, dict]:
+    def step(
+        self, action: np.ndarray
+    ) -> Tuple[np.ndarray, float, bool, bool, dict]:
 
         self.do_simulation(action, self.frame_skip)
         observation = self._get_observation()

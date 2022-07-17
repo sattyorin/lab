@@ -5,6 +5,7 @@ import mujoco
 import numpy as np
 from gym import utils
 from gym.envs.mujoco import MujocoEnv
+from gym.spaces import Box
 
 import envs.linear_actuator_array.linear_actuator_array_config as config
 
@@ -12,7 +13,18 @@ _FRAME_SKIP = 20
 
 
 class LinearActuatorArrayEnv(MujocoEnv, utils.EzPickle):
-    def __init__(self) -> None:
+    metadata = {
+        "render_modes": [
+            "human",
+            "rgb_array",
+            "depth_array",
+            "single_rgb_array",
+            "single_depth_array",
+        ],
+        "render_fps": np.round(1.0 / (config.timestep * _FRAME_SKIP)),
+    }
+
+    def __init__(self, **kwargs) -> None:
 
         xml_file: str = os.path.join(
             os.getcwd(),
@@ -77,18 +89,32 @@ class LinearActuatorArrayEnv(MujocoEnv, utils.EzPickle):
             for i in range(self.num_object)
         ]
 
-        utils.EzPickle.__init__(self)
+        observation_space = Box(
+            low=-np.inf,
+            high=np.inf,
+            shape=(self.num_module + self.num_object + 1,),
+            dtype=np.float64,
+        )
 
-        MujocoEnv.__init__(self, xml_file, _FRAME_SKIP)
+        utils.EzPickle.__init__(**locals())
+
+        MujocoEnv.__init__(
+            self,
+            xml_file,
+            _FRAME_SKIP,
+            observation_space=observation_space,
+            **kwargs,
+        )
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, dict]:
 
         self.do_simulation(action, self.frame_skip)
         observation = self._get_observation()
-        reward, done = self._get_reward(observation)
+        reward, terminated = self._get_reward(observation)
         info: Dict[str, str] = {}
 
-        return observation, reward, done, info
+        self.renderer.render_step()
+        return observation, reward, terminated, False, info
 
     def reset_model(self) -> np.ndarray:
 
@@ -117,12 +143,12 @@ class LinearActuatorArrayEnv(MujocoEnv, utils.EzPickle):
 
     def _get_reward(self, observation: np.ndarray) -> Tuple[float, bool]:
 
-        done = False
+        terminated = False
         if max(
             config.palm_height
             > observation[self.num_module : self.num_module + self.num_object]
         ):
-            done = True
+            terminated = True
         reward = 0.0
 
-        return reward, done
+        return reward, terminated

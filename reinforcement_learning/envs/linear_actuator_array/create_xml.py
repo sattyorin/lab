@@ -12,12 +12,16 @@ def get_xml() -> str:
     return '<?xml version="1.0"?>\n'
 
 
+def get_option() -> str:
+    return f'<option timestep="{config.timestep}"/>\n'
+
+
 def get_mujoco(
-    model_name: str, default: str, worldbody: str, actuator: str
+    model_name: str, option: str, default: str, worldbody: str, actuator: str
 ) -> str:
     mujoco: str = f'<mujoco model="{model_name}">\n'
     end_mujoco: str = "</mujoco>\n"
-    return mujoco + default + worldbody + actuator + end_mujoco
+    return mujoco + option + default + worldbody + actuator + end_mujoco
 
 
 def get_default():
@@ -91,7 +95,8 @@ def get_actuator(motors: str) -> str:
 
 
 def get_motor(motor_id: int) -> str:
-    return f'<motor name="motor{motor_id}" gear="20000" joint="module{motor_id}_joint" />\n'
+    return f'<motor name="motor{motor_id}" ctrllimited="true" ctrlrange="-1.0 1.0" \
+        gear="20000" joint="module{motor_id}_joint" />\n'
 
 
 def parse_args() -> argparse.Namespace:
@@ -99,7 +104,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "-p",
         "--path",
-        default="xmls/linear_actuator_array-v0.xml",
+        default="envs/linear_actuator_array/xmls/linear_actuator_array-v0.xml",
     )
     return parser.parse_args()
 
@@ -152,7 +157,9 @@ def main() -> None:
     actuator: str = get_actuator(
         get_motors(config.module_column * config.module_row)
     )
-    mujoco: str = get_mujoco(args.path, get_default(), worldbody, actuator)
+    mujoco: str = get_mujoco(
+        args.path, get_option(), get_default(), worldbody, actuator
+    )
     with open(args.path, mode="w") as f:
         f.write(get_xml() + mujoco)
 

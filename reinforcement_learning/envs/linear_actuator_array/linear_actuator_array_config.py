@@ -1,3 +1,4 @@
+timestep: float = 0.002
 module_column: int = 4
 module_row: int = 3
 module_length_of_a_side: float = 0.1

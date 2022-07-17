@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<mujoco model="xmls/linear_actuator_array-v0.xml">
+<mujoco model="envs/linear_actuator_array/xmls/linear_actuator_array-v0.xml">
+  <option timestep="0.002" />
   <default>
     <joint limited='true' />
   </default>
@@ -76,17 +77,29 @@
     </body>
   </worldbody>
   <actuator>
-    <motor name="motor0" gear="20000" joint="module0_joint" />
-    <motor name="motor1" gear="20000" joint="module1_joint" />
-    <motor name="motor2" gear="20000" joint="module2_joint" />
-    <motor name="motor3" gear="20000" joint="module3_joint" />
-    <motor name="motor4" gear="20000" joint="module4_joint" />
-    <motor name="motor5" gear="20000" joint="module5_joint" />
-    <motor name="motor6" gear="20000" joint="module6_joint" />
-    <motor name="motor7" gear="20000" joint="module7_joint" />
-    <motor name="motor8" gear="20000" joint="module8_joint" />
-    <motor name="motor9" gear="20000" joint="module9_joint" />
-    <motor name="motor10" gear="20000" joint="module10_joint" />
-    <motor name="motor11" gear="20000" joint="module11_joint" />
+    <motor name="motor0" ctrllimited="true" ctrlrange="-1.0 1.0" gear="20000"
+    joint="module0_joint" />
+    <motor name="motor1" ctrllimited="true" ctrlrange="-1.0 1.0" gear="20000"
+    joint="module1_joint" />
+    <motor name="motor2" ctrllimited="true" ctrlrange="-1.0 1.0" gear="20000"
+    joint="module2_joint" />
+    <motor name="motor3" ctrllimited="true" ctrlrange="-1.0 1.0" gear="20000"
+    joint="module3_joint" />
+    <motor name="motor4" ctrllimited="true" ctrlrange="-1.0 1.0" gear="20000"
+    joint="module4_joint" />
+    <motor name="motor5" ctrllimited="true" ctrlrange="-1.0 1.0" gear="20000"
+    joint="module5_joint" />
+    <motor name="motor6" ctrllimited="true" ctrlrange="-1.0 1.0" gear="20000"
+    joint="module6_joint" />
+    <motor name="motor7" ctrllimited="true" ctrlrange="-1.0 1.0" gear="20000"
+    joint="module7_joint" />
+    <motor name="motor8" ctrllimited="true" ctrlrange="-1.0 1.0" gear="20000"
+    joint="module8_joint" />
+    <motor name="motor9" ctrllimited="true" ctrlrange="-1.0 1.0" gear="20000"
+    joint="module9_joint" />
+    <motor name="motor10" ctrllimited="true" ctrlrange="-1.0 1.0" gear="20000"
+    joint="module10_joint" />
+    <motor name="motor11" ctrllimited="true" ctrlrange="-1.0 1.0" gear="20000"
+    joint="module11_joint" />
   </actuator>
 </mujoco>

@@ -6,6 +6,7 @@ import numpy as np
 from gym import utils
 from gym.envs.mujoco import MujocoEnv
 from gym.spaces import Box
+from scipy import interpolate
 
 import envs.linear_actuator_array.linear_actuator_array_config as config
 
@@ -106,6 +107,9 @@ class LinearActuatorArrayEnv(MujocoEnv, utils.EzPickle):
             **kwargs,
         )
 
+        self.flow_time_interval = config.flow_time_interval
+        self.num_valid_object = self.num_object
+
     def step(
         self, action: np.ndarray
     ) -> Tuple[np.ndarray, float, bool, bool, dict]:
@@ -132,6 +136,8 @@ class LinearActuatorArrayEnv(MujocoEnv, utils.EzPickle):
             )
         mujoco.mj_forward(self.model, self.data)
 
+        self.num_valid_object = self.num_object
+
         return self._get_observation()
 
     def _get_observation(self) -> np.ndarray:
@@ -140,17 +146,43 @@ class LinearActuatorArrayEnv(MujocoEnv, utils.EzPickle):
         objects = np.array(self.data.xpos[self.object_ids, 2])
 
         return np.concatenate(
-            [modules, objects, np.array([self.dt])], dtype=float
+            [modules, objects, np.array([self.data.time])], dtype=float
         )
 
     def _get_reward(self, observation: np.ndarray) -> Tuple[float, bool]:
 
         terminated = False
-        if max(
-            config.palm_height
-            > observation[self.num_module : self.num_module + self.num_object]
-        ):
-            terminated = True
         reward = 0.0
 
+        previous_num_valid_object = self.num_valid_object
+
+        self.num_valid_object = sum(
+            config.palm_height
+            > observation[self.num_module : self.num_module + self.num_object]
+        )
+
+        if self.num_valid_object:
+            terminated = True
+
+        if previous_num_valid_object != self.num_valid_object:
+            reward = abs(
+                observation[-1]
+                - self.flow_time_interval
+                * (self.num_object - self.num_valid_object)
+            )
+
         return reward, terminated
+
+    def update_reward(self, reward: np.ndarray) -> np.ndarray:
+        k = 2
+        if self.num_object > 3:
+            k = 3
+        x = np.where(reward > 0)[0]
+        y = reward[x]
+        t, c, k = interpolate.splrep(x, y, s=0, k=k)
+
+        N = len(reward)
+        xmin, xmax = x.min(), x.max()
+        xx = np.linspace(xmin, xmax, N)
+        spline = interpolate.BSpline(t, c, k, extrapolate=False)
+        return spline(xx)

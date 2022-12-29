@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<mujoco model="xmls/stir-v0.xml">
+  <option timestep="0.01" />
+  <asset>
+    <mesh file="bowl.stl" name="bowl" />
+  </asset>
+  <default>
+    <joint limited="true" />
+  </default>
+  <worldbody>
+    <light name="light0" directional="true" diffuse=".3 .3 .3" pos="-1 -1 1" dir="1 1 -1" />
+    <light name="light1" directional="true" diffuse=".3 .3 .3" pos="1 -1 1" dir="-1 1 -1" />
+    <light name="light2" directional="true" diffuse=".3 .3 .3" pos="0 1 1" dir="0 -1 -1" />
+    <body name="bowl" pos="0 0 0.1" zaxis="0 0 1">
+      <geom type="mesh" name="bowl" mesh="bowl" />
+    </body>
+    <body name="object0" pos="0.0 0.0 0.3">
+      <freejoint name="object0_joint" />
+      <geom name="object0_geom" type="sphere" size="0.02" />
+    </body>
+    <geom name="floor" pos="0 0 0" size="1.0 1.0 .1" type="plane" condim="3" />
+    <body name="root" pos="0 0 0.4">
+      <geom name="root_geom" type="sphere" size="0.006" />
+      <joint name="root_joint_slide_x" type="slide" pos="0 0 0" axis="1 0 0" range="-0.4 0.4" margin="0.01"/>
+      <joint name="root_joint_slide_y" type="slide" pos="0 0 0" axis="0 1 0" range="-0.4 0.4" margin="0.01"/>
+      <body name="chopstics" pos="0 0 0">
+        <geom name="chopstics1" type="cylinder" size="0.006" fromto="0.01 0 0.3 0.008 0 0" />
+        <geom name="chopstics2" type="cylinder" size="0.006" fromto="-0.01 0 0.3 -0.008 0 0" />
+        <joint name="root_joint_ball" type="ball" pos="0 0 0" range="0 45.0" margin="0.01"/>
+      </body>
+    </body>
+   </worldbody>
+  <actuator>
+    <motor name="root_motor_slide_x" ctrllimited="true" ctrlrange="-1.0 1.0" gear="40"
+    joint="root_joint_slide_x" />
+    <motor name="root_motor_slide_y" ctrllimited="true" ctrlrange="-1.0 1.0" gear="40"
+    joint="root_joint_slide_y" />
+    <motor name="root_motor_ball" ctrllimited="true" ctrlrange="-1.0 1.0" gear="40"
+    joint="root_joint_ball" />
+  </actuator>
+</mujoco>

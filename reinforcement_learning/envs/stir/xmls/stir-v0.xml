@@ -2,7 +2,7 @@
 <mujoco model="xmls/stir-v0.xml">
   <option timestep="0.01" />
   <asset>
-    <mesh file="bowl.stl" name="bowl" />
+    <mesh file="bowl4.stl" name="bowl" />
   </asset>
   <default>
     <joint limited="true" />

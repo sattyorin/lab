@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+
+<robot name="stir"
+       xmlns:xacro="http://ros.org/wiki/xacro"
+       xmlns:sensor="http://playerstage.sourceforge.net/gazebo/xmlschema/#sensor"
+       xmlns:controller="http://playerstage.sourceforge.net/gazebo/xmlschema/#controller"
+       xmlns:interface="http://playerstage.sourceforge.net/gazebo/xmlschema/#interface">
+  <link name="world" />
+  <link name="crane_x7_base_link" />
+
+  <xacro:property name="crane_x7_base_x" value="-0.3" />
+
+  <joint name="crane_x7_base_link_to_world_joint" type="fixed">
+    <origin xyz="${crane_x7_base_x} 0 0" rpy="0 0 0"/>
+    <parent link="world"/>="-
+    <child link="crane_x7_base_link"/>
+  </joint>
+
+  <xacro:arg name="use_effort_gripper" default="false" />
+
+  <xacro:include filename="$(find crane_x7_description)/urdf/crane_x7.xacro"/>
+  <xacro:crane_x7 parent="crane_x7_base_link"
+                  base_color="red"
+                  shoulder_color="white"
+                  shoulder_joint_cover_color="red"
+                  upper_arm_upper_color="white"
+                  upper_arm_lower_color="white"
+                  elbow_joint_cover_color="red"
+                  lower_arm_upper_color="white"
+                  lower_arm_lower_color="white"
+                  wrist_color="white"
+                  hand_color="red"
+                  joints_vlimit="4.81710873"
+                  shoulder_llimit="-2.97132"
+                  shoulder_ulimit="2.97132"
+                  logos_definition="$(find crane_x7_description)/urdf/crane_x7_rt_logos.xacro"
+                  use_effort_gripper="$(arg use_effort_gripper)">
+    <origin xyz="0 0 0"/>
+  </xacro:crane_x7>
+
+  <xacro:property name="tool_length" value="0.3" />
+  <xacro:property name="tool_radius" value="0.003" />
+  <xacro:property name="tool_position_x" value="0.01" />
+  <xacro:property name="tool_position_z" value="${tool_length/2}" />
+  <xacro:property name="tool_orientation_p" value="0.02" />
+  <xacro:property name="tool_end_position_z" value="0.35" />
+  <xacro:property name="ingredients_position_z" value="0.1" />
+  <xacro:property name="ingredients_radius" value="0.01" />
+
+  <link name="tool_link">
+    <visual>
+      <origin rpy="0 ${tool_orientation_p} 0" xyz="${tool_position_x} 0 -${tool_position_z}"/>
+      <geometry>
+        <cylinder radius="${tool_radius}" length="${tool_length}"/>
+      </geometry>
+    </visual>
+    <visual>
+      <origin rpy="0 -${tool_orientation_p} 0" xyz="-${tool_position_x} 0 -${tool_position_z}"/>
+      <geometry>
+        <cylinder radius="${tool_radius}" length="${tool_length}"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <joint name="tool_link_to_gripper_base_link" type="fixed">
+    <origin rpy="0 0 0" xyz="0 0 ${tool_end_position_z}"/>
+    <parent link="crane_x7_gripper_base_link" />
+    <child link="tool_link" />
+  </joint>
+
+  <link name="bowl_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://stir_description/meshes/bowl5.stl"/>
+      </geometry>
+      <material name="clear">
+        <color rgba="0.8 0.8 0.8 0.8"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="bowl_link_to_world" type="fixed">
+    <parent link="world" />
+    <child link="bowl_link" />
+  </joint>
+
+</robot>

@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>stir_description</name>
+  <version>0.0.0</version>
+  <description>The stir_description package</description>
+  <maintainer email="sattyorin@todo.todo">sattyorin</maintainer>
+  <license>TODO</license>
+  <buildtool_depend>catkin</buildtool_depend>
+</package>

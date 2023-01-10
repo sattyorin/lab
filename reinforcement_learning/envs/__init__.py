@@ -5,3 +5,9 @@ gym.envs.registration.register(
     entry_point="envs.linear_actuator_array.linear_actuator_array_env:LinearActuatorArrayEnv",
     max_episode_steps=1000,
 )
+
+gym.envs.registration.register(
+    id="stir-v0",
+    entry_point="envs.stir.stir_env:StirEnv",
+    max_episode_steps=1000,
+)

@@ -1,8 +1,11 @@
-import mujoco
-import numpy as np
-import glfw
 import argparse
 import os
+import random
+from typing import Tuple
+
+import glfw
+import mujoco
+import numpy as np
 
 # https://github.com/rohanpsingh/mujoco-python-viewer
 
@@ -24,31 +27,41 @@ if __name__ == "__main__":
     glfw.init()
     width, height = glfw.get_video_mode(glfw.get_primary_monitor()).size
     # glfw.window_hint(glfw.VISIBLE, 0)
-    window = glfw.create_window(width=width, height=height,
-                                title='Invisible window', monitor=None,
-                                share=None)
-    framebuffer_width, framebuffer_height = glfw.get_framebuffer_size(
-        window)
+    window = glfw.create_window(
+        width=width,
+        height=height,
+        title="Invisible window",
+        monitor=None,
+        share=None,
+    )
+    framebuffer_width, framebuffer_height = glfw.get_framebuffer_size(window)
     glfw.make_context_current(window)
     glfw.swap_interval(1)
 
-    if os.path.exists(args.envdir + "/mesh"):
-        mesh_files = os.listdir(args.envdir + "/mesh")
+    mesh_path = os.path.join(
+        args.envdir,
+        "mesh",
+    )
+    if os.path.exists(mesh_path):
+        mesh_files = os.listdir(mesh_path)
         assets = dict()
         for file in mesh_files:
-            with open(args.envdir + "/mesh/" + file, "rb") as f:
+            with open(os.path.join(mesh_path, file), "rb") as f:
                 assets[file] = f.read()
 
         model = mujoco.MjModel.from_xml_path(
-            args.envdir + "/xmls/" + args.env + ".xml", assets)
+            os.path.join(args.envdir, "xmls", f"{args.env}.xml"), assets
+        )
 
     else:
         model = mujoco.MjModel.from_xml_path(
-            args.envdir + "/xmls/" + args.env + ".xml")
+            os.path.join(args.envdir, "xmls", f"{args.env}.xml")
+        )
 
     data = mujoco.MjData(model)
     context = mujoco.MjrContext(
-        model, mujoco.mjtFontScale.mjFONTSCALE_150.value)
+        model, mujoco.mjtFontScale.mjFONTSCALE_150.value
+    )
     option = mujoco.MjvOption()
     camera = mujoco.MjvCamera()
     camera.lookat = np.array([0.0, 0.0, 0.2])
@@ -57,20 +70,36 @@ if __name__ == "__main__":
     camera.elevation = -40.0
     perturb = mujoco.MjvPerturb()
     scene = mujoco.MjvScene(model, maxgeom=10000)
-    viewport = mujoco.MjrRect(
-        0, 0, framebuffer_width, framebuffer_height)
+    viewport = mujoco.MjrRect(0, 0, framebuffer_width, framebuffer_height)
 
-    mujoco.mjv_updateScene(model, data, option, perturb,
-                           camera, mujoco.mjtCatBit.mjCAT_ALL, scene)
+    mujoco.mjv_updateScene(
+        model, data, option, perturb, camera, mujoco.mjtCatBit.mjCAT_ALL, scene
+    )
     # mujoco.mjr_setBuffer(mujoco.mjtFramebuffer.mjFB_OFFSCREEN, context)
+
+    init_qpos = data.qpos.copy()
 
     for i in range(500):
         if glfw.window_should_close(window):
             break
 
+        if i % 10 == 0:
+            print(data.qpos)
+            print(data.qvel)
+
+            data.ctrl[0] = random.uniform(-0.01, 0.01)
+            data.ctrl[1] = random.uniform(-0.01, 0.01)
+
         mujoco.mj_step(model, data)
-        mujoco.mjv_updateScene(model, data, option, perturb,
-                               camera, mujoco.mjtCatBit.mjCAT_ALL, scene)
+        mujoco.mjv_updateScene(
+            model,
+            data,
+            option,
+            perturb,
+            camera,
+            mujoco.mjtCatBit.mjCAT_ALL,
+            scene,
+        )
         mujoco.mjr_render(viewport, scene, context)
         glfw.swap_buffers(window)
 

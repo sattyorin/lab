@@ -1,0 +1,6 @@
+delete Monitor in pfrl/wrapper/__init__.py
+add import random in train_ddpg.py
+env.seed() -> random.seed() in train_ddpg.py
+env.reset() -> env.reset()[0]
+increase the number of env.step() return
+especially in pfrl/experiments/train_agent.py and pfrl/experiments/evaluator.py

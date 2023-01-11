@@ -5,7 +5,7 @@ from typing import Dict, Tuple
 
 import mujoco
 import numpy as np
-from gym import utils
+from gym import spaces, utils
 from gym.envs.mujoco import MujocoEnv
 from gym.spaces import Box
 
@@ -145,16 +145,27 @@ class StirEnv(MujocoEnv, utils.EzPickle):
             **kwargs,
         )
 
+        self.action_space = spaces.Box(
+            low=np.array([0.0, 0.0]),
+            high=np.array([0.07, 0.1]),
+            dtype=np.float32,
+        )
+
         self.total_reward = 0.0
         self.pre_velocity_x = 0.0
         self.pre_velocity_y = 0.0
         self.num_step = 0
+        self.pre_angle = 0.0
 
     def step(
         self, action: np.ndarray
     ) -> Tuple[np.ndarray, float, bool, bool, dict]:
 
-        self.do_simulation(action, self.frame_skip)
+        ctrl = np.zeros(self.action_space.shape)
+        ctrl[0] = action[0] * np.cos(self.pre_angle + action[1])
+        ctrl[1] = action[0] * np.sin(self.pre_angle + action[1])
+        self.pre_angle += action[1]
+        self.do_simulation(ctrl, self.frame_skip)
         observation = self._get_observation()
         reward, terminated = self._get_reward(observation, action)
         info: Dict[str, str] = {}
@@ -227,6 +238,7 @@ class StirEnv(MujocoEnv, utils.EzPickle):
         self.pre_velocity_x = 0.0
         self.pre_velocity_y = 0.0
         self.num_step = 0
+        self.pre_angle = 0.0
 
         return observation
 
@@ -337,13 +349,13 @@ class StirEnv(MujocoEnv, utils.EzPickle):
         velocity_y = observation[self.observation_size_tool // 2 + 1]
 
         # collision detection
-        for i in range(self.data.contact.geom1.size):
-            if self.data.contact.geom1[i] in self.bowl_geom_ids:
-                if self.data.contact.geom2[i] in self.tool_geom_ids:
-                    return -100.0, True
-            if self.data.contact.geom2[i] in self.tool_geom_ids:
-                if self.data.contact.geom2[i] in self.bowl_geom_ids:
-                    return -100.0, True
+        # for i in range(self.data.contact.geom1.size):
+        #     if self.data.contact.geom1[i] in self.bowl_geom_ids:
+        #         if self.data.contact.geom2[i] in self.tool_geom_ids:
+        #             return -100.0, True
+        #     if self.data.contact.geom2[i] in self.tool_geom_ids:
+        #         if self.data.contact.geom2[i] in self.bowl_geom_ids:
+        #             return -100.0, True
 
         # drop detection
         # if (
@@ -353,11 +365,11 @@ class StirEnv(MujocoEnv, utils.EzPickle):
         #     return -1.0, True
 
         # stir reward
-        # distance = 1 - self._get_distance_between_two_centroid(observation)
-        # reward_distance = 1 - distance
-        # if distance < _THRESHOLD_DISTANCE:
-        #     print("done")
-        #     return 100, True
+        distance = 1 - self._get_distance_between_two_centroid(observation)
+        reward_distance = 1 - distance
+        if distance < _THRESHOLD_DISTANCE:
+            print("done")
+            return 100, True
 
         velocity = np.linalg.norm(np.array([velocity_x, velocity_y]))
         reward_small_velocity = self.get_small_velocity_reward(velocity)
@@ -366,11 +378,11 @@ class StirEnv(MujocoEnv, utils.EzPickle):
         # )
         # penalty_large_control = self.get_large_control_penalty(action)
         # penalty_small_control = self.get_small_control_penalty(action)
-        reward = reward_small_velocity  # + reward_distance
+        reward = reward_small_velocity + reward_distance
         self.total_reward += reward_small_velocity
         self.num_step += 1
 
-        if self.total_reward / self.num_step < 0.5:
+        if self.total_reward / self.num_step < 0.8:
             return reward, True
 
         # self.pre_velocity_x = velocity_x

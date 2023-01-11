@@ -87,8 +87,8 @@ if __name__ == "__main__":
             print(data.qpos)
             print(data.qvel)
 
-            data.ctrl[0] = random.uniform(-0.01, 0.01)
-            data.ctrl[1] = random.uniform(-0.01, 0.01)
+        data.ctrl[0] = 0.07 * np.sin(i * 0.05)
+        data.ctrl[1] = 0.07 * np.cos(i * 0.05)
 
         mujoco.mj_step(model, data)
         mujoco.mjv_updateScene(

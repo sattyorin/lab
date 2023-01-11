@@ -6,8 +6,7 @@
     <mesh file="../mesh/bowl5.stl" name="bowl" scale="0.001 0.001 0.001" />
   </asset>
   <default>
-    <!-- <geom margin="0.001" /> -->
-    <joint limited="true" />
+    <joint armature="0" damping="1" stiffness=".0001" limited="true"/>
   </default>
   <worldbody>
     <light name="light0" directional="true" diffuse=".3 .3 .3" pos="-1 -1 1" dir="1 1 -1" />
@@ -61,6 +60,7 @@
       <freejoint name="ingredient3_joint" />
       <geom name="ingredient3_geom" type="box" size="0.015 0.015 0.015" rgba="0 1.0 0 0.8" />
     </body>
+    <!-- TODO(sara): refer to https://github.com/deepmind/mujoco/blob/main/test/engine/testdata/refsite.xml -->
     <body name="tool" pos="0 0 0.1">
       <geom name="tool_position_geom" type="sphere" size="0.001" pos="0 0 0.3" />
       <joint name="tool_position_x_joint" type="slide" pos="0 0 0" axis="1 0 0" range="-0.1 0.1" margin="0.001" />

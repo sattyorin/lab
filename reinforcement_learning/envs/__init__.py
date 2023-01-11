@@ -11,3 +11,9 @@ gym.envs.registration.register(
     entry_point="envs.stir.stir_env:StirEnv",
     max_episode_steps=1000,
 )
+
+gym.envs.registration.register(
+    id="stir_gazebo-v0",
+    entry_point="envs.stir.stir_gazebo_env:StirGazeboEnv",
+    max_episode_steps=1000,
+)

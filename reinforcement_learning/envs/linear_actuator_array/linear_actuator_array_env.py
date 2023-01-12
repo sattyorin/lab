@@ -1,14 +1,13 @@
 import os
 from typing import Dict, Tuple
 
+import envs.linear_actuator_array.linear_actuator_array_config as config
 import mujoco
 import numpy as np
 from gym import utils
 from gym.envs.mujoco import MujocoEnv
 from gym.spaces import Box
 from scipy import interpolate
-
-import envs.linear_actuator_array.linear_actuator_array_config as config
 
 _FRAME_SKIP = 20
 

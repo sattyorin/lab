@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <sdf version="1.7">
   <model name="ingredient_cube">
-    <link name="ingredient_cube_link">
-      <visual name="ingredient_cube_visual">
+    <link name="link">
+      <visual name="visual">
         <geometry>
           <box> 
             <size>0.01 0.01 0.01</size>
@@ -12,7 +12,7 @@
           <ambient>0 1 0 1</ambient>
         </material>
       </visual>
-      <collision name='ingredient_cube_collision'>
+      <collision name="collision">
         <geometry>
           <box> 
             <size>0.01 0.01 0.01</size>

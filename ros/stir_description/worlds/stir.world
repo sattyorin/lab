@@ -1,0 +1,55 @@
+<?xml version="1.0" ?>
+<sdf version="1.7">
+  <world name="stir_world">
+    <scene>
+      <shadows>0</shadows>
+    </scene>
+
+    <include>
+      <uri>model://sun</uri>
+    </include>
+
+    <model name="ground_plane">
+      <include>
+        <uri>model://ground_plane</uri>
+      </include>
+    </model>
+
+    <model name="bowl">
+      <include>
+        <uri>model://bowl</uri>
+        <pose>0 0 0 0 0 0</pose>
+        <static>true</static>
+      </include>
+    </model>
+
+    <model name="ingredient0">
+      <include>
+        <uri>model://ingredient_cube</uri>
+        <pose>0.01 0.01 0.05 0 0 0</pose>
+      </include>
+    </model>
+
+    <model name="ingredient1">
+      <include>
+        <uri>model://ingredient_cube</uri>
+        <pose>0.01 -0.01 0.05 0 0 0</pose>
+      </include>
+    </model>
+
+    <model name="ingredient2">
+      <include>
+        <uri>model://ingredient_cube</uri>
+        <pose>-0.01 0.01 0.05 0 0 0</pose>
+      </include>
+    </model>
+
+    <model name="ingredient3">
+      <include>
+        <uri>model://ingredient_cube</uri>
+        <pose>-0.01 -0.01 0.05 0 0 0</pose>
+      </include>
+    </model>
+
+  </world>
+</sdf>

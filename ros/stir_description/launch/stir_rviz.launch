@@ -1,22 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
-  <arg name="model"
-       default="$(find stir_description)/robot/stir.urdf.xacro" />
+  <arg name="robot"
+       default="$(find stir_description)/robot/crane_x7_with_tools.urdf.xacro" />
   <arg name="rvizconfig"
        default="$(find stir_description)/rviz/urdf.rviz" />
-  <arg name="sim"
+  <arg name="use_sim_time"
        default="false" />
   <arg name="gui"
        default="true" />
-  <arg name="state_rate"
-       default="10" />
-  <param name="rate"
-         value="$(arg state_rate)" />
   <param name="use_sim_time"
-         value="$(arg sim)" />
+         value="$(arg use_sim_time)" />
   <param name="robot_description"
-         command="$(find xacro)/xacro $(arg model)" />
-  <!-- <rosparam param="source_list">["joint_states_source"]</rosparam> -->
+         command="$(find xacro)/xacro --inorder '$(arg robot)'" />
+  <rosparam param="source_list">["joint_states_source"]</rosparam>
   <node name="joint_state_publisher_gui"
         pkg="joint_state_publisher_gui"
         type="joint_state_publisher_gui"
@@ -24,7 +20,7 @@
   <node name="joint_state_publisher"
         pkg="joint_state_publisher"
         type="joint_state_publisher"
-        unless="$(arg gui)"/>
+        unless="$(arg gui)" />
   <node name="robot_state_publisher"
         pkg="robot_state_publisher"
         type="robot_state_publisher" />

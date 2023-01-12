@@ -6,4 +6,20 @@
   <maintainer email="sattyorin@todo.todo">sattyorin</maintainer>
   <license>TODO</license>
   <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>gazebo</build_depend>
+  <build_depend>gazebo_plugins</build_depend>
+  <build_depend>gazebo_ros_control</build_depend>
+  <build_export_depend>gazebo</build_export_depend>
+  <build_export_depend>gazebo_plugins</build_export_depend>
+  <build_export_depend>gazebo_ros_control</build_export_depend>
+  <exec_depend>gazebo</exec_depend>
+  <exec_depend>gazebo_plugins</exec_depend>
+  <exec_depend>gazebo_ros_control</exec_depend>
+  <exec_depend>roboticsgroup_upatras_gazebo_plugins</exec_depend>
+  <exec_depend>roslang</exec_depend>
+  <exec_depend>urdf_parser_plugin</exec_depend>
+  <exec_depend>crane_x7_moveit_config</exec_depend>
+  <exec_depend>crane_x7_control</exec_depend>
+  <exec_depend>crane_x7_description</exec_depend>
+  <exec_depend>gazebo_ros</exec_depend>
 </package>

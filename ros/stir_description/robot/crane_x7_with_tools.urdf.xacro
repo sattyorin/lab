@@ -17,7 +17,7 @@
     <child link="base_link"/>
   </joint>
 
-  <xacro:arg name="use_effort_gripper" default="false" />
+  <xacro:arg name="use_effort_gripper" default="true" />
 
   <xacro:crane_x7 parent="base_link"
                   base_color="red"
@@ -43,7 +43,8 @@
   <xacro:property name="tool_position_x" value="0.01" />
   <xacro:property name="tool_position_z" value="${tool_length/2}" />
   <xacro:property name="tool_orientation_p" value="0.02" />
-  <xacro:property name="tool_end_position_z" value="0.35" />
+  <!-- TODO(sara): resolve collision probrem -->
+  <xacro:property name="tool_end_position_z" value="0.39" />
 
   <link name="tool_link">
     <visual>

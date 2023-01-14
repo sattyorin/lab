@@ -22,4 +22,7 @@
   <exec_depend>crane_x7_control</exec_depend>
   <exec_depend>crane_x7_description</exec_depend>
   <exec_depend>gazebo_ros</exec_depend>
+  <export>
+    <gazebo_ros plugin_path="${prefix}/../../lib" gazebo_media_path="${prefix}" />
+  </export>
 </package>

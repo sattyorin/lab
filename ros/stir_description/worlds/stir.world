@@ -51,5 +51,6 @@
       </include>
     </model>
 
+    <plugin name="gazebo_bridge" filename="libgazebo_bridge.so"/>
   </world>
 </sdf>

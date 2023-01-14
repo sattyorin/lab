@@ -3,11 +3,14 @@ from typing import Dict, Tuple
 
 import gym
 import numpy as np
+from gazebo_bridge.bridge import GazeboBridge
 from gym.spaces import Box
 
 _FRAME_SKIP = 1
-_TIME_STEP = 0.01
+_TIME_STEP = 0.1
 _ENV = "stir-v0"
+_OBSERVATION_SIZE = 1
+_ACTION_SIZE = 7
 
 
 class StirGazeboEnv(gym.Env):
@@ -24,19 +27,20 @@ class StirGazeboEnv(gym.Env):
         np.random.seed(0)
         random.seed(0)
 
-        shape = 1
-
         self.observation_space = Box(
             low=-np.inf,
             high=np.inf,
-            shape=(shape,),
+            shape=(_OBSERVATION_SIZE,),
             dtype=np.float64,
         )
 
-        self.action_space = Box(low=-np.inf, high=np.inf, dtype=np.float32)
+        self.action_space = Box(
+            low=-np.inf, high=np.inf, shape=(_ACTION_SIZE,), dtype=np.float32
+        )
+        self.bridge = GazeboBridge()
 
-    def _do_simulation(self, action: np.ndarray):
-        pass
+    def _do_simulation(self, action: np.ndarray) -> None:
+        self.bridge.step(action)
 
     def step(
         self, action: np.ndarray
@@ -48,11 +52,12 @@ class StirGazeboEnv(gym.Env):
 
         return observation, reward, terminated, False, info
 
-    def reset_model(self) -> np.ndarray:
-        return self._get_observation()
+    def reset(self) -> np.ndarray:
+        self.bridge.reset()
+        return self._get_observation(), {}
 
     def _get_observation(self) -> np.ndarray:
-        observation = np.zeros(self.observation_space.size)
+        observation = np.zeros(self.observation_space.shape[0])
         return observation
 
     def _get_reward(self, observation: np.ndarray) -> Tuple[float, bool]:

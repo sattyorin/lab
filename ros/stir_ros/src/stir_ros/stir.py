@@ -4,13 +4,15 @@ import numpy as np
 import rospy
 import tf2_ros
 from gazebo_msgs.msg import LinkStates
-from gazebo_msgs.srv import SetLinkState
+from gazebo_msgs.srv import SetLinkState, SetLinkStateRequest
 from geometry_msgs.msg import Pose, TransformStamped
+from rosgraph_msgs.msg import Clock
 from std_srvs.srv import Empty
 
 LINK_STATES = "/gazebo/link_states"
 SET_LINK_STATES = "/gazebo/set_link_state"
 RESET_SIMULATION = "/gazebo/reset_simulation"
+RESET_WORLD = "/gazebo/reset_world"
 STEP_WORLD = "/gazebo/step_world"
 UNPAUSE_PHYSICS = "gazebo/unpause_physics"
 PAUSE_PHYSICS = "gazebo/pause_physics"
@@ -52,12 +54,17 @@ class Stir:
         )
 
         rospy.wait_for_service(SET_LINK_STATES, timeout=3)
-        self._set_link_states_proxy = rospy.ServiceProxy(SET_LINK_STATES, Empty)
+        self._set_link_states_proxy = rospy.ServiceProxy(
+            SET_LINK_STATES, SetLinkState
+        )
 
         rospy.wait_for_service(RESET_SIMULATION, timeout=3)
         self._reset_simulation_proxy = rospy.ServiceProxy(
             RESET_SIMULATION, Empty
         )
+
+        rospy.wait_for_service(RESET_WORLD, timeout=3)
+        self._reset_world_proxy = rospy.ServiceProxy(RESET_WORLD, Empty)
 
         rospy.wait_for_service(STEP_WORLD, timeout=3)
         self._step_world_proxy = rospy.ServiceProxy(STEP_WORLD, Empty)
@@ -134,7 +141,7 @@ class Stir:
     def get_ingredient_poses(self) -> np.ndarray:
         return self._ingredient_buffer
 
-    def _move_target_pose(self, pose: np.ndarray) -> None:
+    def _move_target_pose(self, pose: np.ndarray, wait=False) -> None:
         target_pose = Pose()
         target_pose.position.x = pose[0]
         target_pose.position.y = pose[1]
@@ -144,7 +151,7 @@ class Stir:
         target_pose.orientation.z = pose[5]
         target_pose.orientation.w = pose[6]
         self._arm.set_pose_target(target_pose, end_effector_link=TOOL_LINK)
-        self._arm.go(wait=False)
+        self._arm.go(wait=wait)
 
     def step(self, action: np.ndarray) -> None:
         self._arm.stop()
@@ -154,21 +161,25 @@ class Stir:
     def reset(
         self, init_tool_pose: np.ndarray, init_ingredient_poses: np.ndarray
     ) -> None:
-        self._reset_simulation_proxy()
-        self._move_target_pose(init_tool_pose)
-        self._step_world_proxy()
+        self._arm.stop()
+        self._unpause_physics_proxy()
+        self._move_target_pose(init_tool_pose, wait=True)
 
-        for pose in init_ingredient_poses:
-            link_state = SetLinkState()
-            link_state.link_name = (
-                INGREDIENT + "::" + INGREDIENTS_MODEL + "::" + LINK
+        self._reset_world_proxy()
+
+        for i, ingredient_pose in enumerate(init_ingredient_poses):
+            link_state = SetLinkStateRequest()
+            link_state.link_state.link_name = (
+                f"{INGREDIENT}{i}::{INGREDIENTS_MODEL}::{LINK}"
             )
-            link_state.pose.position.x = pose[0]
-            link_state.pose.position.y = pose[1]
-            link_state.pose.position.z = pose[2]
-            link_state.pose.orientation.x = pose[3]
-            link_state.pose.orientation.y = pose[4]
-            link_state.pose.orientation.z = pose[5]
-            link_state.pose.orientation.w = pose[6]
-            link_state.reference_frame = BASE_LINK
+            link_state.link_state.pose.position.x = ingredient_pose[0]
+            link_state.link_state.pose.position.y = ingredient_pose[1]
+            link_state.link_state.pose.position.z = ingredient_pose[2]
+            link_state.link_state.pose.orientation.x = 0.0
+            link_state.link_state.pose.orientation.y = 0.0
+            link_state.link_state.pose.orientation.z = 0.0
+            link_state.link_state.pose.orientation.w = 1.0
+            link_state.link_state.reference_frame = BASE_LINK
             self._set_link_states_proxy(link_state)
+
+        self._pause_physics_proxy()

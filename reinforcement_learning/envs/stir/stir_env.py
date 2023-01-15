@@ -281,7 +281,7 @@ class StirEnv(MujocoEnv, utils.EzPickle):
     def _get_distance_between_two_centroid(
         self, observation: np.ndarray
     ) -> float:
-        ingredients = observation[self.observation_size_tool :].reshape(-1, 3)
+        ingredients = observation[self.observation_size_tool :].reshape(-1, 7)
         centroid1 = np.mean(
             ingredients[0 : (self.num_ingredients // 2)], axis=0
         )

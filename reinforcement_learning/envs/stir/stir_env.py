@@ -281,29 +281,13 @@ class StirEnv(MujocoEnv, utils.EzPickle):
     def _get_distance_between_two_centroid(
         self, observation: np.ndarray
     ) -> float:
-        # TODO(sara): parameterize number of ingredients
-        centroid1_x = (
-            observation[self.observation_size_tool]
-            + observation[self.observation_size_tool + 3]
-        ) / 2
-        centroid1_y = (
-            observation[self.observation_size_tool + 1]
-            + observation[self.observation_size_tool + 4]
-        ) / 2
-        centroid2_x = (
-            observation[self.observation_size_tool + 6]
-            + observation[self.observation_size_tool + 9]
-        ) / 2
-        centroid2_y = (
-            observation[self.observation_size_tool + 7]
-            + observation[self.observation_size_tool + 10]
-        ) / 2
-        distance = np.linalg.norm(
-            np.array([centroid1_x, centroid1_y])
-            - np.array([centroid2_x, centroid2_y])
+        ingredients = observation[self.observation_size_tool :].reshape(-1, 3)
+        centroid1 = np.mean(
+            ingredients[0 : (self.num_ingredients // 2)], axis=0
         )
+        centroid2 = np.mean(ingredients[(self.num_ingredients // 2) :], axis=0)
+        distance = np.linalg.norm(centroid1[0:2] - centroid2[0:2])
 
-        self.pre_distance = distance
         return distance
 
     def get_small_velocity_reward(self, velocity: float) -> float:

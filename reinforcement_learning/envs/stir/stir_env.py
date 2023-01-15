@@ -281,6 +281,7 @@ class StirEnv(MujocoEnv, utils.EzPickle):
     def _get_distance_between_two_centroid(
         self, observation: np.ndarray
     ) -> float:
+        # TODO(sara): parameterize number of ingredients
         centroid1_x = (
             observation[self.observation_size_tool]
             + observation[self.observation_size_tool + 3]

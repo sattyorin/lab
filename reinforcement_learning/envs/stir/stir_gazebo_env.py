@@ -4,12 +4,13 @@ from typing import Dict, Optional, Tuple
 
 import gym
 import numpy as np
+import tf
 from gym.spaces import Box
 from stir_ros import Stir
 
 _FRAME_SKIP = 1
 _TIME_STEP = 0.1
-_ACTION_SIZE = 7
+_ACTION_SIZE = 6
 _NUM_INGREDIENTS = 4
 _OBSERVATION_SIZE_TOOL = 7
 _OBSERVATION_SIZE_INGREDIENTS = 3
@@ -58,8 +59,17 @@ class StirGazeboEnv(gym.Env):
             dtype=np.float64,
         )
 
+        action_low = np.array(
+            [-0.1, -0.1, -0.01, *np.deg2rad([180 - 30, -1.0, -1.0])]
+        )
+        acthin_high = np.array(
+            [0.1, 0.1, 0.01, *np.deg2rad([180 - 20, 1.0, 1.0])]
+        )
         self.action_space = Box(
-            low=-np.inf, high=np.inf, shape=(_ACTION_SIZE,), dtype=np.float32
+            low=action_low,
+            high=acthin_high,
+            shape=(_ACTION_SIZE,),
+            dtype=np.float32,
         )
         self.stir = Stir()
 
@@ -69,9 +79,11 @@ class StirGazeboEnv(gym.Env):
     def step(
         self, action: np.ndarray
     ) -> Tuple[np.ndarray, float, bool, bool, dict]:
-        self.stir.step(action)
+        q = tf.transformations.quaternion_from_euler(*action[3:])
+        pose_target = np.concatenate([action[0:3], q])
+        self.stir.step(pose_target)
         observation = self._get_observation()
-        reward, terminated = self._get_reward()
+        reward, terminated = self._get_reward(observation)
         info: Dict[str, str] = {}
         self.num_step += 1
 

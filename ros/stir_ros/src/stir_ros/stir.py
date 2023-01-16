@@ -30,6 +30,10 @@ WORLD = "world"
 class Stir:
     def __init__(self, tool_frame: str = TOOL_LINK) -> None:
         rospy.init_node("stir_node", anonymous=True)
+
+        self._unpause_physics_proxy = rospy.ServiceProxy(UNPAUSE_PHYSICS, Empty)
+        self._unpause_physics_proxy()
+
         self.tool_frame = tool_frame
         self._ingredient_buffer = np.zeros(
             (NUM_INGREDIENTS * NUM_INGREDIENT_POSES,)
@@ -74,8 +78,8 @@ class Stir:
         rospy.wait_for_service(PAUSE_PHYSICS, timeout=3)
         self._pause_physics_proxy = rospy.ServiceProxy(PAUSE_PHYSICS, Empty)
 
-        rospy.wait_for_service(UNPAUSE_PHYSICS, timeout=3)
-        self._unpause_physics_proxy = rospy.ServiceProxy(UNPAUSE_PHYSICS, Empty)
+        # rospy.wait_for_service(UNPAUSE_PHYSICS, timeout=3)
+        # self._unpause_physics_proxy = rospy.ServiceProxy(UNPAUSE_PHYSICS, Empty)
 
         # self._reset_simulation_proxy()
         # rospy.wait_for_message("/clock", Clock)
@@ -163,7 +167,6 @@ class Stir:
         self._arm.go(wait=wait)
 
     def step(self, action: np.ndarray) -> None:
-        rospy.loginfo("call step")
         self._arm.stop()
         self._move_target_pose(action)
         self._step_world_proxy()

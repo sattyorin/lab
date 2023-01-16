@@ -2,6 +2,7 @@
 import moveit_commander
 import numpy as np
 import rospy
+import tf
 import tf2_ros
 from gazebo_msgs.msg import LinkStates
 from gazebo_msgs.srv import SetLinkState, SetLinkStateRequest
@@ -23,14 +24,15 @@ INGREDIENTS_MODEL = "ingredient_cube"
 LINK = "link"
 TOOL_LINK = "tool_link"
 BASE_LINK = "base_link"
+WORLD = "world"
 
 
 class Stir:
     def __init__(self, tool_frame: str = TOOL_LINK) -> None:
-
+        rospy.init_node("stir_node", anonymous=True)
         self.tool_frame = tool_frame
         self._ingredient_buffer = np.zeros(
-            (NUM_INGREDIENTS, NUM_INGREDIENT_POSES)
+            (NUM_INGREDIENTS * NUM_INGREDIENT_POSES,)
         )
 
         self._obserbation_index = np.array([], dtype=np.uint8)
@@ -83,8 +85,15 @@ class Stir:
         self._arm = moveit_commander.MoveGroupCommander("arm")
 
         rospy.sleep(2)
-        self._arm.allow_replanning(True)
-        rospy.sleep(2)
+        # self._arm.allow_replanning(True)
+        rospy.loginfo("go init pose")
+        q = tf.transformations.quaternion_from_euler(
+            np.deg2rad(180 - 30), 0.0, 0.0
+        )
+        init_tool_pose = [0.24, 0.0, -0.14, *q]
+        self._arm.set_pose_target(init_tool_pose, end_effector_link=TOOL_LINK)
+        self._arm.go()
+        rospy.sleep(1)
 
         self._pause_physics_proxy()
 
@@ -92,9 +101,9 @@ class Stir:
 
     def _link_states_callback(self, states: LinkStates) -> None:
         for i, obs_i in enumerate(self._obserbation_index):
-            self._ingredient_buffer[i, 0] = states.pose[obs_i].position.x
-            self._ingredient_buffer[i, 1] = states.pose[obs_i].position.y
-            self._ingredient_buffer[i, 2] = states.pose[obs_i].position.z
+            self._ingredient_buffer[i * 3] = states.pose[obs_i].position.x
+            self._ingredient_buffer[i * 3 + 1] = states.pose[obs_i].position.y
+            self._ingredient_buffer[i * 3 + 2] = states.pose[obs_i].position.z
 
     def get_tool_pose(self) -> np.ndarray:
         try:
@@ -154,17 +163,19 @@ class Stir:
         self._arm.go(wait=wait)
 
     def step(self, action: np.ndarray) -> None:
+        rospy.loginfo("call step")
         self._arm.stop()
         self._move_target_pose(action)
         self._step_world_proxy()
 
-    def reset(
-        self, init_tool_pose: np.ndarray, init_ingredient_poses: np.ndarray
-    ) -> None:
+    def reset_robot(self, init_tool_pose: np.ndarray) -> None:
         self._arm.stop()
         self._unpause_physics_proxy()
         self._move_target_pose(init_tool_pose, wait=True)
+        self._pause_physics_proxy()
 
+    def reset_ingredient(self, init_ingredient_poses: np.ndarray) -> None:
+        self._unpause_physics_proxy()
         self._reset_world_proxy()
 
         for i, ingredient_pose in enumerate(init_ingredient_poses):
@@ -179,7 +190,14 @@ class Stir:
             link_state.link_state.pose.orientation.y = 0.0
             link_state.link_state.pose.orientation.z = 0.0
             link_state.link_state.pose.orientation.w = 1.0
-            link_state.link_state.reference_frame = BASE_LINK
+            link_state.link_state.reference_frame = WORLD
             self._set_link_states_proxy(link_state)
 
+        rospy.wait_for_message(LINK_STATES, LinkStates, timeout=2)
         self._pause_physics_proxy()
+
+    def reset(
+        self, init_tool_pose: np.ndarray, init_ingredient_poses: np.ndarray
+    ) -> None:
+        self.reset_robot(init_tool_pose)
+        self.reset_ingredient(init_ingredient_poses)

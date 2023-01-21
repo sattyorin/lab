@@ -17,7 +17,7 @@
     <child link="base_link"/>
   </joint>
 
-  <xacro:arg name="use_effort_gripper" default="true" />
+  <xacro:arg name="use_effort_gripper" default="false" />
 
   <xacro:crane_x7 parent="base_link"
                   base_color="red"

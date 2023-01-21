@@ -12,6 +12,15 @@
   <arg name="robot_description" default="robot_description" />
   <arg name="robot"
        default="$(find stir_description)/robot/crane_x7_with_tools.urdf.xacro" />
+  <arg name="position_controller_config_file"
+       default="$(find stir_bringup)/config/crane_x7_position_controllers.yaml" />
+  <arg name="velocity_controller_config_file"
+       default="$(find stir_bringup)/config/crane_x7_velocity_controllers.yaml" />
+  <arg name="stopped_position_controllers"
+       default="arm_position_controller"/>
+  <arg name="stopped_velocity_controllers"
+       default="arm_velocity_controller"/>
+  <arg name="arm_controller_type" default="velocity" />
 
   <param name="$(arg robot_description)" 
          command="$(find xacro)/xacro --inorder '$(arg robot)"/>
@@ -42,6 +51,7 @@
   </node>
   
   <include file="$(find crane_x7_moveit_config)/launch/move_group.launch">
+    <arg name="load_plannning_context" value="false" />
     <arg name="allow_trajectory_execution" value="true" />
     <arg name="fake_execution" value="$(arg fake_execution)" />
     <arg name="info" value="true" />
@@ -50,10 +60,26 @@
     <arg name="use_gazebo" value="$(arg use_gazebo)" />
   </include>
 
+  <group ns="/crane_x7" if="$(eval arg('arm_controller_type') == 'position')">
+    <rosparam file="$(arg position_controller_config_file)" command="load"/>
+    <node name="ros_control_stopped_spawner" pkg="controller_manager" type="spawner"
+      args="--stopped $(arg stopped_position_controllers)" output="screen" respawn="false" />
+  </group>
+
+  <group ns="/crane_x7" if="$(eval arg('arm_controller_type') == 'velocity')">
+    <rosparam file="$(arg velocity_controller_config_file)" command="load"/>
+    <node name="ros_control_stopped_spawner" pkg="controller_manager" type="spawner"
+      args="--stopped $(arg stopped_velocity_controllers)" output="screen" respawn="false" />
+  </group>
+
   <include file="$(find crane_x7_moveit_config)/launch/moveit_rviz.launch">
     <arg name="config" value="true" />
     <arg name="debug" value="$(arg debug)" />
   </include>
+
+  <include file="$(find stir_ros)/launch/pose_tracker.launch">
+    <arg name="arm_controller_type" value="$(arg arm_controller_type)" />
+  </include> 
 
 </launch>
 

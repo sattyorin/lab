@@ -2,6 +2,15 @@
 <launch>
   <!-- roslaunch crane_x7_gazebo crane_x7_with_table.launch -->
 
+  <!-- <arg name="maximum_waypoint_distance" default="0.01" />
+  <arg name="minimum_waypoint_count" default="2" />
+  <group ns="/move_group/ompl">
+    <param name="maximum_waypoint_distance"
+           value="$(arg maximum_waypoint_distance)" />
+    <param name="minimum_waypoint_count"
+           value="$(arg minimum_waypoint_count)" />
+  </group> -->
+
   <arg name="use_gui" default="false" />
   <arg name="moveit_debug" default="false" />
   <arg name="gazebo_debug" default="false" />
@@ -9,40 +18,26 @@
   <arg name="paused" default="false" />
   <arg name="use_sim_time" default="true" />
   <arg name="headless" default="false" />
-  <arg name="use_effort_gripper" default="true" />
-
-  <include file="$(find crane_x7_control)/launch/crane_x7_fake_control.launch">
-    <arg name="use_effort_gripper" value="$(arg use_effort_gripper)" />
-  </include>
-
-  <!-- TODO(sara): building a world -->
-  <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="$(find stir_description)/worlds/stir.world" />
-    <arg name="debug" value="$(arg gazebo_debug)" />
-    <arg name="gui" value="$(arg gui)" />
-    <arg name="paused" value="$(arg paused)" />
-    <arg name="use_sim_time" value="$(arg use_sim_time)" />
-    <arg name="headless" value="$(arg headless)" />
-    <arg name="verbose" value="true" />
-  </include>
-
+  <arg name="use_effort_gripper" default="false" />
+  <arg name="position_controller_config_file"
+       default="$(find stir_bringup)/config/crane_x7_position_controllers.yaml" />
+  <arg name="velocity_controller_config_file"
+       default="$(find stir_bringup)/config/crane_x7_velocity_controllers.yaml" />
+  <arg name="stopped_position_controllers"
+       default="arm_position_controller"/>
+  <arg name="stopped_velocity_controllers"
+       default="arm_velocity_controller"/>
   <arg name="robot"
        default="$(find stir_description)/robot/crane_x7_with_tools.urdf.xacro" />
-  <param name="robot_description"
-         command="$(find xacro)/xacro --inorder '$(arg robot)'" />
-
-  <node name="urdf_spawner"
-        pkg="gazebo_ros"
-        type="spawn_model"
-        respawn="false"
-        output="screen"
-        args="-urdf -model crane_x7 -param robot_description -z 1.02" />
-
   <arg name="use_gazebo" default="true" />
   <arg name="fake_execution" default="false" />
   <arg name="port" default="/dev/ttyUSB0" />
   <arg name="robot_description" default="robot_description" />
+  <arg name="robot_base_link_offset_x" default="0.0" />
+  <arg name="arm_controller_type" default="velocity" />
 
+  <param name="robot_description"
+         command="$(find xacro)/xacro --inorder '$(arg robot)'" />
   <param name="$(arg robot_description)_semantic"
          textfile="$(find stir_description)/config/crane_x7_with_tools.srdf" />
   
@@ -55,6 +50,39 @@
     <rosparam command="load"
               file="$(find crane_x7_moveit_config)/config/kinematics.yaml" />
   </group>
+
+  <include file="$(find crane_x7_control)/launch/crane_x7_fake_control.launch">
+    <arg name="use_effort_gripper" value="$(arg use_effort_gripper)" />
+  </include>
+
+  <group ns="/crane_x7" if="$(eval arg('arm_controller_type') == 'position')">
+    <rosparam file="$(arg position_controller_config_file)" command="load"/>
+    <node name="ros_control_stopped_spawner" pkg="controller_manager" type="spawner"
+      args="--stopped $(arg stopped_position_controllers)" output="screen" respawn="false" />
+  </group>
+
+  <group ns="/crane_x7" if="$(eval arg('arm_controller_type') == 'velocity')">
+    <rosparam file="$(arg velocity_controller_config_file)" command="load"/>
+    <node name="ros_control_stopped_spawner" pkg="controller_manager" type="spawner"
+      args="--stopped $(arg stopped_velocity_controllers)" output="screen" respawn="false" />
+  </group>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find stir_description)/worlds/stir.world" />
+    <arg name="debug" value="$(arg gazebo_debug)" />
+    <arg name="gui" value="$(arg gui)" />
+    <arg name="paused" value="$(arg paused)" />
+    <arg name="use_sim_time" value="$(arg use_sim_time)" />
+    <arg name="headless" value="$(arg headless)" />
+    <arg name="verbose" value="true" />
+  </include>
+
+  <node name="urdf_spawner"
+        pkg="gazebo_ros"
+        type="spawn_model"
+        respawn="false"
+        output="screen"
+        args="-urdf -model crane_x7 -param robot_description -z $(arg robot_base_link_offset_x)"/>
 
   <node name="joint_state_publisher"
         pkg="joint_state_publisher"
@@ -76,6 +104,7 @@
         output="screen" />
 
   <include file="$(find crane_x7_moveit_config)/launch/move_group.launch">
+    <arg name="load_plannning_context" value="false" />
     <arg name="allow_trajectory_execution" value="true" />
     <arg name="fake_execution" value="$(arg fake_execution)" />
     <arg name="info" value="true" />
@@ -88,5 +117,9 @@
     <arg name="config" value="true" />
     <arg name="debug" value="$(arg moveit_debug)" />
   </include>
+
+  <include file="$(find stir_ros)/launch/pose_tracker.launch">
+    <arg name="arm_controller_type" value="$(arg arm_controller_type)" />
+  </include> 
 
 </launch>

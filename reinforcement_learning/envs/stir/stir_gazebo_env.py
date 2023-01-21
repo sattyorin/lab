@@ -59,29 +59,32 @@ class StirGazeboEnv(gym.Env):
             dtype=np.float64,
         )
 
-        action_low = np.array(
-            [-0.1, -0.1, -0.01, *np.deg2rad([180 - 30, -1.0, -1.0])]
-        )
-        acthin_high = np.array(
-            [0.1, 0.1, 0.01, *np.deg2rad([180 - 20, 1.0, 1.0])]
-        )
+        self.init_tool_pose = np.array(
+            [0.374, -0.015, -0.139, -0.184, 0.936, -0.279, 0.114]
+        )  # TODO(sara): get pose from somewhere
+
+        self.stir = Stir(self.init_tool_pose)
+
+        action_low = -0.1
+        action_high = 0.1
+
         self.action_space = Box(
             low=action_low,
-            high=acthin_high,
+            high=action_high,
             shape=(_ACTION_SIZE,),
-            dtype=np.float32,
+            dtype=np.float64,
         )
-        self.stir = Stir()
 
-        self.init_tool_pose = self.stir.get_tool_pose()
         self.num_step = 0
 
     def step(
         self, action: np.ndarray
     ) -> Tuple[np.ndarray, float, bool, bool, dict]:
-        q = tf.transformations.quaternion_from_euler(*action[3:])
-        pose_target = np.concatenate([action[0:3], q])
-        self.stir.step(pose_target)
+        # TODO(sara): add switcher
+        self.stir.step(action)
+        # q = tf.transformations.quaternion_from_euler(*action[3:])
+        # pose_target = np.concatenate([action[0:3], q])
+        # self.stir.step(pose_target)
         observation = self._get_observation()
         reward, terminated = self._get_reward(observation)
         info: Dict[str, str] = {}
@@ -104,14 +107,17 @@ class StirGazeboEnv(gym.Env):
     def reset(
         self, *, seed: Optional[int] = None, options: Optional[dict] = None
     ) -> np.ndarray:
-        tool_position = self.init_tool_pose[0:3] + self.np_random.uniform(
-            low=-_RESET_NOISE_SCALE,
-            high=_RESET_NOISE_SCALE,
-            size=3,
-        )
-        # tool_orientation = np.array([0.0, 0.0, 0.0, 1.0])
-        tool_orientation = self.init_tool_pose[3:]
-        self.stir.reset_robot(np.concatenate([tool_position, tool_orientation]))
+        # TODO(sara):
+        # tool_position = self.init_tool_pose[0:3] + self.np_random.uniform(
+        #     low=-_RESET_NOISE_SCALE,
+        #     high=_RESET_NOISE_SCALE,
+        #     size=3,
+        # )
+        # # tool_orientation = np.array([0.0, 0.0, 0.0, 1.0])
+        # tool_orientation = self.init_tool_pose[3:]
+        # self.stir.reset_robot(np.concatenate([tool_position, tool_orientation]))
+
+        self.stir.reset_robot()
 
         if self.num_ingredients > 0:
             for _ in range(_MAX_TRIAL_INGREDIENT_RANDOMIZATION):

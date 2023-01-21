@@ -1,3 +1,6 @@
 [submodule "ros/crane_x7_ros"]
 	path = ros/crane_x7_ros
 	url = git@github.com:sattyorin/crane_x7_ros.git
+[submodule "ros/crane_x7_description"]
+	path = ros/crane_x7_description
+	url = git@github.com:sattyorin/crane_x7_description.git

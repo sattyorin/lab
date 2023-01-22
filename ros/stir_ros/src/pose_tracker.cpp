@@ -10,6 +10,7 @@
 #include <moveit_servo/status_codes.h>
 #include <ros/ros.h>
 #include <std_msgs/Int8.h>
+#include <std_srvs/Empty.h>
 
 namespace stir_ros {
 constexpr int kNumSpinner = 8;
@@ -21,6 +22,8 @@ constexpr double kTargetPoseTimeout = 100.0;
 PoseTracker::PoseTracker()
     : nh_("~"),
       spinner_(kNumSpinner),
+      reset_subscriber_(nh_.advertiseService(
+          "reset_moveit_servo", &PoseTracker::ResetCallback, this)),
       planning_scene_monitor_(
           std::make_shared<planning_scene_monitor::PlanningSceneMonitor>(
               "robot_description")) {
@@ -54,6 +57,12 @@ PoseTracker::PoseTracker()
 PoseTracker::~PoseTracker() {
   // Make sure the tracker is stopped and clean up
   tracker_->stopMotion();
+}
+
+bool PoseTracker::ResetCallback(std_srvs::Empty::Request& req,
+                                std_srvs::Empty::Response& res) {
+  tracker_->resetTargetPose();
+  return true;
 }
 
 }  // namespace stir_ros

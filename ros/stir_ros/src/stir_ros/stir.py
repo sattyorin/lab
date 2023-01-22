@@ -30,6 +30,7 @@ JOINT_STATES = "/crane_x7/joint_states"
 TARGET_POSE = "/pose_tracking_node/target_pose"
 SWITCH_CONTROLLER = "/crane_x7/controller_manager/switch_controller"
 LIST_CONTROLLERS = "/crane_x7/controller_manager/list_controllers"
+RESET_MOVEIT_SERVO = "/pose_tracking_node/reset_moveit_servo"
 NUM_INGREDIENTS = 4  # TODO(sara):get from urdf
 NUM_INGREDIENT_POSES = 3  # TODO(sara):get from urdf
 INGREDIENT = "ingredient"
@@ -136,6 +137,11 @@ class Stir:
         rospy.wait_for_service(UNPAUSE_PHYSICS, timeout=2)
         self._unpause_physics_proxy = rospy.ServiceProxy(UNPAUSE_PHYSICS, Empty)
 
+        rospy.wait_for_service(RESET_MOVEIT_SERVO, timeout=2)
+        self._reset_moveit_servo_proxy = rospy.ServiceProxy(
+            RESET_MOVEIT_SERVO, Empty
+        )
+
         # self._reset_simulation_proxy()
         # rospy.wait_for_message("/clock", Clock)
 
@@ -177,7 +183,7 @@ class Stir:
 
         self._switch_controller(self._controller, DEFAULT_CONTROLLER)
 
-        # self._pause_physics_proxy()
+        self._pause_physics_proxy()
 
         rospy.loginfo("initalized Stir")
 
@@ -274,6 +280,7 @@ class Stir:
     def step(self, action: np.ndarray) -> None:
         # TODO(sara): add switcher
         self._publish_twist_stamped(action)
+        self._step_world_proxy()
         # self._publish_target_pose(action)
 
     def _switch_controller(
@@ -293,21 +300,25 @@ class Stir:
         self._switch_controller_proxy(switch_controller)
 
     def reset_robot(self) -> None:
-        # self._unpause_physics_proxy()
+        self._unpause_physics_proxy()
 
         if self._get_current_controller() != DEFAULT_CONTROLLER:
             self._switch_controller(DEFAULT_CONTROLLER, self._controller)
 
+        self._arm.set_named_target("home")
+        self._arm.go(wait=True)
         self._arm.set_named_target("init")
         self._arm.go(wait=True)
+
+        self._reset_moveit_servo_proxy()
 
         rospy.sleep(1)
 
         self._switch_controller(self._controller, DEFAULT_CONTROLLER)
-        # self._pause_physics_proxy()
+        self._pause_physics_proxy()
 
     def reset_ingredient(self, init_ingredient_poses: np.ndarray) -> None:
-        # self._unpause_physics_proxy()
+        self._unpause_physics_proxy()
         self._reset_world_proxy()
 
         for i, ingredient_pose in enumerate(init_ingredient_poses):
@@ -326,4 +337,4 @@ class Stir:
             self._set_link_states_proxy(link_state)
 
         rospy.wait_for_message(LINK_STATES, LinkStates, timeout=2)
-        # self._pause_physics_proxy()
+        self._pause_physics_proxy()

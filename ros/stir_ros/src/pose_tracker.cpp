@@ -61,6 +61,7 @@ PoseTracker::~PoseTracker() {
 
 bool PoseTracker::ResetCallback(std_srvs::Empty::Request& req,
                                 std_srvs::Empty::Response& res) {
+  tracker_->stopMotion();
   tracker_->resetTargetPose();
   return true;
 }

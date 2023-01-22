@@ -1,5 +1,6 @@
 #!/usr/bin/env -S python3 -u
 import string
+from typing import Tuple
 
 import moveit_commander
 import numpy as np
@@ -42,6 +43,7 @@ WORLD = "world"
 DEFAULT_CONTROLLER = "arm_controller"
 POSITION_CONTROLLER = "arm_position_controller"
 VELOCITY_CONTROLLER = "arm_velocity_controller"
+_RESET_NOISE_SCALE = 0.001
 
 
 class Stir:
@@ -183,6 +185,8 @@ class Stir:
 
         self._switch_controller(self._controller, DEFAULT_CONTROLLER)
 
+        self._reset_moveit_servo_proxy()
+
         self._pause_physics_proxy()
 
         rospy.loginfo("initalized Stir")
@@ -217,8 +221,10 @@ class Stir:
         self.latest_joint_state = states
 
     def _get_transformed_pose(
-        self, target_frame: string, source_frame: string
-    ) -> np.ndarray:
+        self,
+        target_frame: string,
+        source_frame: string,
+    ) -> Tuple[np.ndarray, rospy.Time]:
         try:
             trans: TransformStamped = self._tfBuffer.lookup_transform(
                 target_frame, source_frame, rospy.Duration(0)
@@ -243,12 +249,13 @@ class Stir:
                 trans.transform.rotation.w,
             ]
         )
-        return pose
+        return pose, trans.header.stamp
 
         # cannot use get_current_pose if stop clock
 
-    def get_tool_pose(self) -> np.ndarray:
-        return self._get_transformed_pose(WORLD, TOOL_LINK)
+    def get_tool_pose(self) -> Tuple[np.ndarray, float]:
+        pose, stamp = self._get_transformed_pose(WORLD, TOOL_LINK)
+        return pose, stamp.to_sec()
 
     def get_current_state(self) -> JointState:
         return self.latest_joint_state
@@ -305,10 +312,17 @@ class Stir:
         if self._get_current_controller() != DEFAULT_CONTROLLER:
             self._switch_controller(DEFAULT_CONTROLLER, self._controller)
 
-        self._arm.set_named_target("home")
-        self._arm.go(wait=True)
+        # self._arm.set_named_target("home")
+        # self._arm.go(wait=True)
         self._arm.set_named_target("init")
         self._arm.go(wait=True)
+        joint_values = np.array(self._arm.get_current_joint_values())
+        joint_values += np.random.uniform(
+            low=-_RESET_NOISE_SCALE,
+            high=_RESET_NOISE_SCALE,
+            size=7,
+        )
+        self._arm.set_joint_value_target(joint_values)
 
         self._reset_moveit_servo_proxy()
 

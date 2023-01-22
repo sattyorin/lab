@@ -11,8 +11,8 @@ from stir_ros import Stir
 _FRAME_SKIP = 1
 _TIME_STEP = 0.1
 _ACTION_SIZE = 6
-_NUM_INGREDIENTS = 4
-_OBSERVATION_SIZE_TOOL = 7
+_NUM_INGREDIENTS = 0  # TODO(sara)
+_OBSERVATION_SIZE_TOOL = 7 + 6
 _OBSERVATION_SIZE_INGREDIENTS = 3
 _OBSERVATION_SIZE = (
     _OBSERVATION_SIZE_TOOL + _NUM_INGREDIENTS * _OBSERVATION_SIZE_INGREDIENTS
@@ -21,8 +21,8 @@ _RESET_INGREDIENTS_RADIUS_MIN = 0.02
 _RESET_INGREDIENTS_RADIUS_MAX = 0.04
 _INGREDIENTS_POSITION_Z = 0.05
 _THRESHOLD_DISTANCE = 0.01
-_RESET_NOISE_SCALE = 0.0001
 _MAX_TRIAL_INGREDIENT_RANDOMIZATION = 100
+_TARGET_VELOCITY = 0.02
 
 
 class Observation(Enum):
@@ -51,6 +51,9 @@ class StirGazeboEnv(gym.Env):
 
         self.num_ingredients = _NUM_INGREDIENTS
         self.observation_size_tool = _OBSERVATION_SIZE_TOOL
+        self.num_step = 0
+        self._previous_tool_pose_euler = np.zeros(6, dtype=float)
+        self._previous_sec: Optional[float] = None
 
         self.observation_space = Box(
             low=-np.inf,
@@ -74,8 +77,6 @@ class StirGazeboEnv(gym.Env):
             shape=(_ACTION_SIZE,),
             dtype=np.float64,
         )
-
-        self.num_step = 0
 
     def step(
         self, action: np.ndarray
@@ -104,18 +105,14 @@ class StirGazeboEnv(gym.Env):
 
         return distance
 
+    def get_small_velocity_reward(self, velocity: float) -> float:
+        return 1 - np.exp(
+            -velocity / (_TARGET_VELOCITY - _TARGET_VELOCITY * 0.7)
+        )
+
     def reset(
         self, *, seed: Optional[int] = None, options: Optional[dict] = None
     ) -> np.ndarray:
-        # TODO(sara):
-        # tool_position = self.init_tool_pose[0:3] + self.np_random.uniform(
-        #     low=-_RESET_NOISE_SCALE,
-        #     high=_RESET_NOISE_SCALE,
-        #     size=3,
-        # )
-        # # tool_orientation = np.array([0.0, 0.0, 0.0, 1.0])
-        # tool_orientation = self.init_tool_pose[3:]
-        # self.stir.reset_robot(np.concatenate([tool_position, tool_orientation]))
 
         self.stir.reset_robot()
 
@@ -148,14 +145,59 @@ class StirGazeboEnv(gym.Env):
             observation = self._get_observation()
 
         self.num_step = 0
+        self._previous_sec = None
 
         return observation, {}
 
     def _get_observation(self) -> np.ndarray:
-        return np.concatenate(
-            [self.stir.get_tool_pose(), self.stir.get_ingredient_poses()]
+        tool_pose, sec = self.stir.get_tool_pose()
+        tool_pose_euler = np.concatenate(
+            [
+                tool_pose[:3],
+                np.array(
+                    tf.transformations.euler_from_quaternion(tool_pose[3:])
+                ),
+            ]
         )
+        if (
+            not self._previous_sec
+            or abs(sec - self._previous_sec) < np.finfo(float).eps
+        ):
+            velocity = np.zeros(6, dtype=float)
+        else:
+            velocity = (tool_pose_euler - self._previous_tool_pose_euler) / (
+                sec - self._previous_sec
+            )
+
+        observation = np.concatenate(
+            [
+                tool_pose,
+                velocity,
+                # self.stir.get_ingredient_poses(),
+            ]
+        )
+        self._previous_tool_pose_euler = tool_pose_euler
+        self._previous_sec = sec
+        return observation
 
     def _get_reward(self, observation: np.ndarray) -> Tuple[float, bool]:
         reward = 0.0
+        tool_pose = observation[:7]
+        # tool_velocity = observation[:7]
+
+        # velocity = np.linalg.norm(np.array([observation[7], observation[8]]))
+        # reward_small_velocity = self.get_small_velocity_reward(velocity)
+
+        z_distance = (tool_pose[2] - self.init_tool_pose[2]) ** 2
+        normalization_distance = 0.00001
+        reward = normalization_distance / max(
+            normalization_distance, z_distance
+        )
+
+        if np.hypot(*(tool_pose[:2] - self.init_tool_pose[:2])) > 0.08:
+            return reward, True
+
+        if abs(tool_pose[2] - self.init_tool_pose[2]) > 0.1:
+            return reward, True
+
         return reward, False

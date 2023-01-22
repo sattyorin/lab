@@ -2,3 +2,4 @@ __pycache__/
 .clang-format
 build/
 crane_ws
+*.egg-info

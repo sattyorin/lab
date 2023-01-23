@@ -1,6 +1,6 @@
 import random
 from enum import Enum
-from typing import Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 import gym
 import numpy as np
@@ -23,6 +23,12 @@ _INGREDIENTS_POSITION_Z = 0.05
 _THRESHOLD_DISTANCE = 0.01
 _MAX_TRIAL_INGREDIENT_RANDOMIZATION = 100
 _TARGET_VELOCITY = 0.02
+# _BOWL_RADIUS_TOP = 0.12
+# _BOWL_RADIUS_BOTTOM = 0.08
+# _BOWL_TOP_POSITION_Z = -0.139 + 0.06 - 0.04  # init_tool_pose + height + alpha
+_BOWL_RADIUS_TOP = 0.11
+_BOWL_RADIUS_BOTTOM = 0.07
+_BOWL_TOP_POSITION_Z = -0.129 + 0.05 - 0.03  # init_tool_pose + height + alpha
 
 
 class Observation(Enum):
@@ -75,7 +81,7 @@ class StirGazeboEnv(gym.Env):
             low=action_low,
             high=action_high,
             shape=(_ACTION_SIZE,),
-            dtype=np.float64,
+            dtype=np.float32,
         )
 
     def step(
@@ -92,6 +98,9 @@ class StirGazeboEnv(gym.Env):
         self.num_step += 1
 
         return observation, reward, terminated, False, info
+
+    def render(self):
+        return None
 
     def _get_distance_between_two_centroids(
         self, observation: np.ndarray
@@ -180,6 +189,50 @@ class StirGazeboEnv(gym.Env):
         self._previous_sec = sec
         return observation
 
+    def _check_collision_with_bowl(
+        self, end_pose: np.ndarray, base_pose: np.ndarray
+    ) -> bool:
+
+        # tool end condition
+        a = (_BOWL_RADIUS_TOP - _BOWL_RADIUS_BOTTOM) / _BOWL_TOP_POSITION_Z
+        if np.hypot(
+            *(end_pose[:2] - self.init_tool_pose[:2])
+        ) > _BOWL_RADIUS_BOTTOM + a * (end_pose[2] + 0.139):
+            return True
+
+        # piercing condition
+        a_xy = (base_pose[1] - end_pose[1]) / (base_pose[0] - end_pose[0])
+        b_xy = -a_xy * end_pose[0] + end_pose[1]
+
+        a = 1 + a_xy
+        b = a_xy * b_xy
+        c = b_xy**2 - _BOWL_RADIUS_TOP**2
+        x1 = (-b + np.sqrt(b**2 - 4 * a * c)) / (2 * a)
+        x2 = (-b - np.sqrt(b**2 - 4 * a * c)) / (2 * a)
+        y1 = a_xy * x1 + b_xy
+        y2 = a_xy * x2 + b_xy
+
+        if 0 < np.dot(
+            base_pose[:2] - end_pose[:2],
+            np.array([x1, y1]) - end_pose[:2],
+        ):
+            x = x1
+            y = y1
+        else:
+            x = x2
+            y = y2
+
+        distance_end_to_bowl_top_xy = np.hypot(
+            *(np.array([x, y]) - end_pose[:2])
+        )
+
+        distance_xy = np.hypot(*(end_pose[:2] - base_pose[:2]))
+        a_wz1 = (base_pose[2] - end_pose[2]) / distance_xy
+        b_wz1 = end_pose[2]
+        return (
+            _BOWL_TOP_POSITION_Z > a_wz1 * distance_end_to_bowl_top_xy + b_wz1
+        )
+
     def _get_reward(self, observation: np.ndarray) -> Tuple[float, bool]:
         reward = 0.0
         tool_pose = observation[:7]
@@ -194,10 +247,15 @@ class StirGazeboEnv(gym.Env):
             normalization_distance, z_distance
         )
 
-        if np.hypot(*(tool_pose[:2] - self.init_tool_pose[:2])) > 0.08:
+        if self.init_tool_pose[2] - tool_pose[2] > 0.028:
             return reward, True
 
-        if abs(tool_pose[2] - self.init_tool_pose[2]) > 0.1:
+        if tool_pose[2] - self.init_tool_pose[2] > 0.02:
+            return reward, True
+
+        if self._check_collision_with_bowl(
+            self.stir.get_tool_pose()[0], self.stir.get_gripper_pose()[0]
+        ):
             return reward, True
 
         return reward, False

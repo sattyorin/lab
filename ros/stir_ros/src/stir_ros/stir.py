@@ -28,10 +28,11 @@ STEP_WORLD = "/gazebo/step_world"
 UNPAUSE_PHYSICS = "/gazebo/unpause_physics"
 PAUSE_PHYSICS = "/gazebo/pause_physics"
 JOINT_STATES = "/crane_x7/joint_states"
-TARGET_POSE = "/pose_tracking_node/target_pose"
+STIR_ROS_NODE = "bringup_servo_node"  # or pose_tracking_node
+TARGET_POSE = f"/{STIR_ROS_NODE}/target_pose"
 SWITCH_CONTROLLER = "/crane_x7/controller_manager/switch_controller"
 LIST_CONTROLLERS = "/crane_x7/controller_manager/list_controllers"
-RESET_MOVEIT_SERVO = "/pose_tracking_node/reset_moveit_servo"
+CARTESIAN_COMMAND_IN_TOPIC = f"/{STIR_ROS_NODE}/cartesian_command_in_topic"
 NUM_INGREDIENTS = 4  # TODO(sara):get from urdf
 NUM_INGREDIENT_POSES = 3  # TODO(sara):get from urdf
 INGREDIENT = "ingredient"
@@ -40,6 +41,7 @@ LINK = "link"
 TOOL_LINK = "tool_link"
 BASE_LINK = "base_link"
 WORLD = "world"
+GRIPPER_BASE_LINK = "crane_x7_gripper_base_link"
 DEFAULT_CONTROLLER = "arm_controller"
 POSITION_CONTROLLER = "arm_position_controller"
 VELOCITY_CONTROLLER = "arm_velocity_controller"
@@ -99,10 +101,10 @@ class Stir:
         )
 
         param_cartesian_command_in_topic = rospy.get_param(
-            "pose_tracking_node/cartesian_command_in_topic"
+            CARTESIAN_COMMAND_IN_TOPIC
         )
         self._cartesian_command_publisher = rospy.Publisher(
-            f"pose_tracking_node/{param_cartesian_command_in_topic}",
+            f"/{STIR_ROS_NODE}/{param_cartesian_command_in_topic}",
             TwistStamped,
             queue_size=1,
         )
@@ -138,11 +140,6 @@ class Stir:
 
         rospy.wait_for_service(UNPAUSE_PHYSICS, timeout=2)
         self._unpause_physics_proxy = rospy.ServiceProxy(UNPAUSE_PHYSICS, Empty)
-
-        rospy.wait_for_service(RESET_MOVEIT_SERVO, timeout=2)
-        self._reset_moveit_servo_proxy = rospy.ServiceProxy(
-            RESET_MOVEIT_SERVO, Empty
-        )
 
         # self._reset_simulation_proxy()
         # rospy.wait_for_message("/clock", Clock)
@@ -184,8 +181,6 @@ class Stir:
         self._arm.go(wait=True)
 
         self._switch_controller(self._controller, DEFAULT_CONTROLLER)
-
-        self._reset_moveit_servo_proxy()
 
         self._pause_physics_proxy()
 
@@ -257,6 +252,10 @@ class Stir:
         pose, stamp = self._get_transformed_pose(WORLD, TOOL_LINK)
         return pose, stamp.to_sec()
 
+    def get_gripper_pose(self) -> Tuple[np.ndarray, float]:
+        pose, stamp = self._get_transformed_pose(WORLD, GRIPPER_BASE_LINK)
+        return pose, stamp.to_sec()
+
     def get_current_state(self) -> JointState:
         return self.latest_joint_state
         # cannot use get_current_state if stop clock
@@ -323,8 +322,6 @@ class Stir:
             size=7,
         )
         self._arm.set_joint_value_target(joint_values)
-
-        self._reset_moveit_servo_proxy()
 
         rospy.sleep(1)
 

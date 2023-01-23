@@ -14,7 +14,8 @@
   <arg name="use_gui" default="false" />
   <arg name="moveit_debug" default="false" />
   <arg name="gazebo_debug" default="false" />
-  <arg name="gui" default="true" />
+  <arg name="gui" default="false" />
+  <!-- rosrun gazebo_ros gzclient __name:=piyo  -->
   <arg name="paused" default="false" />
   <arg name="use_sim_time" default="true" />
   <arg name="headless" default="false" />
@@ -118,8 +119,11 @@
     <arg name="debug" value="$(arg moveit_debug)" />
   </include>
 
-  <include file="$(find stir_ros)/launch/pose_tracker.launch">
+  <include file="$(find stir_ros)/launch/pose_tracker.launch" unless="$(eval arg('arm_controller_type') == 'velocity')">
     <arg name="arm_controller_type" value="$(arg arm_controller_type)" />
-  </include> 
+  </include>
+  <include file="$(find stir_ros)/launch/bringup_servo.launch" if="$(eval arg('arm_controller_type') == 'velocity')">
+    <arg name="arm_controller_type" value="$(arg arm_controller_type)" />
+  </include>
 
 </launch>

@@ -77,9 +77,12 @@
     <arg name="debug" value="$(arg debug)" />
   </include>
 
-  <include file="$(find stir_ros)/launch/pose_tracker.launch">
+  <include file="$(find stir_ros)/launch/pose_tracker.launch" unless="$(eval arg('arm_controller_type') == 'velocity')">
     <arg name="arm_controller_type" value="$(arg arm_controller_type)" />
-  </include> 
+  </include>
+  <include file="$(find stir_ros)/launch/bringup_servo.launch" if="$(eval arg('arm_controller_type') == 'velocity')">
+    <arg name="arm_controller_type" value="$(arg arm_controller_type)" />
+  </include>
 
 </launch>
 

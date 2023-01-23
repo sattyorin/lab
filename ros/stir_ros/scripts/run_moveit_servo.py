@@ -3,21 +3,23 @@ import numpy as np
 import rospy
 from geometry_msgs.msg import PoseStamped, TwistStamped
 
+STIR_ROS_NODE = "bringup_servo_node"  # or pose_tracking_node
+
 
 class StirRosTest:
     def __init__(self) -> None:
         param_cartesian_command_in_topic = rospy.get_param(
-            "pose_tracking_node/cartesian_command_in_topic"
+            f"{STIR_ROS_NODE}/cartesian_command_in_topic"
         )
 
         self._cartesian_command_publisher = rospy.Publisher(
-            f"pose_tracking_node/{param_cartesian_command_in_topic}",
+            f"{STIR_ROS_NODE}/{param_cartesian_command_in_topic}",
             TwistStamped,
             queue_size=1,
         )
 
         self._target_pose_publishre = rospy.Publisher(
-            "pose_tracking_node/target_pose", PoseStamped, queue_size=1
+            f"{STIR_ROS_NODE}/target_pose", PoseStamped, queue_size=1
         )
 
     def publish_twist_stamped(self, theta: float, max_velocity: float) -> None:

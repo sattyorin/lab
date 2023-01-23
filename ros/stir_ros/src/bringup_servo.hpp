@@ -16,8 +16,6 @@ class BringupServo {
   ~BringupServo();
 
  private:
-  bool ResetCallback(std_srvs::Empty::Request& req,
-                     std_srvs::Empty::Response& res);
   ros::NodeHandle nh_;
   ros::AsyncSpinner spinner_;
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;

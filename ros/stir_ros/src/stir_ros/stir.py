@@ -15,6 +15,7 @@ from controller_manager_msgs.srv import (
 from gazebo_msgs.msg import LinkStates
 from gazebo_msgs.srv import SetLinkState, SetLinkStateRequest
 from geometry_msgs.msg import Pose, PoseStamped, TransformStamped, TwistStamped
+from moveit_msgs.msg import MoveGroupActionResult
 from sensor_msgs.msg import JointState
 from std_srvs.srv import Empty
 
@@ -52,6 +53,7 @@ class Stir:
     def __init__(self, init_tool_pose: np.ndarray) -> None:
         rospy.init_node("stir_node", anonymous=True)
         self.init_tool_pose = init_tool_pose
+        self._moveit_error = False
 
         # self._unpause_physics_proxy = rospy.ServiceProxy(UNPAUSE_PHYSICS, Empty)
         # self._unpause_physics_proxy()
@@ -96,7 +98,14 @@ class Stir:
             queue_size=1,
         )
 
-        self._target_pose_publishre = rospy.Publisher(
+        self._move_group_result_subscriber = rospy.Subscriber(
+            "/move_group/result",
+            MoveGroupActionResult,
+            self._move_group_result_callback,
+            queue_size=1,
+        )
+
+        self._target_pose_publisher = rospy.Publisher(
             TARGET_POSE, PoseStamped, queue_size=1
         )
 
@@ -180,6 +189,9 @@ class Stir:
         self._arm.set_named_target("init")
         self._arm.go(wait=True)
 
+        if self._moveit_error:
+            rospy.logerr("failed to go init pose")
+
         self._switch_controller(self._controller, DEFAULT_CONTROLLER)
 
         self._pause_physics_proxy()
@@ -214,6 +226,9 @@ class Stir:
 
     def _joint_states_callback(self, states: JointState) -> None:
         self.latest_joint_state = states
+
+    def _move_group_result_callback(self, result: MoveGroupActionResult):
+        self._moveit_error = result.result.error_code.val < 0
 
     def _get_transformed_pose(
         self,
@@ -269,7 +284,7 @@ class Stir:
         target_pose_stampd.header.stamp = rospy.Time.now()
         target_pose_stampd.header.frame_id = WORLD
         target_pose_stampd.pose = target_pose
-        self._target_pose_publishre.publish(target_pose_stampd)
+        self._target_pose_publisher.publish(target_pose_stampd)
 
     def _publish_twist_stamped(self, twist: np.ndarray) -> None:
         twist_stamped = TwistStamped()
@@ -301,7 +316,7 @@ class Stir:
         switch_controller = SwitchControllerRequest()
         switch_controller.start_controllers.append(start_controller)
         switch_controller.stop_controllers.append(stop_controller)
-        switch_controller.strictness = switch_controller.STRICT
+        switch_controller.strictness = SwitchControllerRequest.STRICT
         switch_controller.timeout = 2.0
         self._switch_controller_proxy(switch_controller)
 
@@ -315,6 +330,14 @@ class Stir:
         # self._arm.go(wait=True)
         self._arm.set_named_target("init")
         self._arm.go(wait=True)
+        if self._moveit_error:
+            self._reset_world_proxy()
+            # TODO(sara): set_link_state ?
+            self._arm.set_named_target("home")
+            self._arm.go(wait=True)
+            self._arm.set_named_target("init")
+            self._arm.go(wait=True)
+
         joint_values = np.array(self._arm.get_current_joint_values())
         joint_values += np.random.uniform(
             low=-_RESET_NOISE_SCALE,

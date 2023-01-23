@@ -4,3 +4,6 @@
 [submodule "ros/crane_x7_description"]
 	path = ros/crane_x7_description
 	url = git@github.com:sattyorin/crane_x7_description.git
+[submodule "bowl_sdf_generator"]
+	path = bowl_sdf_generator
+	url = git@github.com:sattyorin/bowl_sdf_generator.git

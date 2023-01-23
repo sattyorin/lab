@@ -29,6 +29,7 @@ _TARGET_VELOCITY = 0.02
 _BOWL_RADIUS_TOP = 0.11
 _BOWL_RADIUS_BOTTOM = 0.07
 _BOWL_TOP_POSITION_Z = -0.129 + 0.05 - 0.03  # init_tool_pose + height + alpha
+_BOWL_BOTTOM_POSITION_Z = -0.139
 
 
 class Observation(Enum):
@@ -194,10 +195,12 @@ class StirGazeboEnv(gym.Env):
     ) -> bool:
 
         # tool end condition
-        a = (_BOWL_RADIUS_TOP - _BOWL_RADIUS_BOTTOM) / _BOWL_TOP_POSITION_Z
+        a = (_BOWL_RADIUS_TOP - _BOWL_RADIUS_BOTTOM) / (
+            _BOWL_TOP_POSITION_Z - _BOWL_BOTTOM_POSITION_Z
+        )
         if np.hypot(
             *(end_pose[:2] - self.init_tool_pose[:2])
-        ) > _BOWL_RADIUS_BOTTOM + a * (end_pose[2] + 0.139):
+        ) > _BOWL_RADIUS_BOTTOM + a * (end_pose[2] - _BOWL_BOTTOM_POSITION_Z):
             return True
 
         # piercing condition

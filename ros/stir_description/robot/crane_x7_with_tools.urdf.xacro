@@ -1,25 +1,25 @@
 <?xml version="1.0"?>
 
-<robot name="stir"
+<!-- TODO(sara): rename robot name to crane_x7_with_tools -->
+<robot name="crane_x7"
        xmlns:xacro="http://ros.org/wiki/xacro"
        xmlns:sensor="http://playerstage.sourceforge.net/gazebo/xmlschema/#sensor"
        xmlns:controller="http://playerstage.sourceforge.net/gazebo/xmlschema/#controller"
        xmlns:interface="http://playerstage.sourceforge.net/gazebo/xmlschema/#interface">
+
+  <xacro:include filename="$(find crane_x7_description)/urdf/crane_x7.xacro" />
+
+  <link name="base_link" />
   <link name="world" />
-  <link name="crane_x7_base_link" />
 
-  <xacro:property name="crane_x7_base_x" value="-0.3" />
-
-  <joint name="crane_x7_base_link_to_world_joint" type="fixed">
-    <origin xyz="${crane_x7_base_x} 0 0" rpy="0 0 0"/>
-    <parent link="world"/>="-
-    <child link="crane_x7_base_link"/>
+  <joint name="base_link_to_world_joint" type="fixed">
+    <parent link="world"/>
+    <child link="base_link"/>
   </joint>
 
   <xacro:arg name="use_effort_gripper" default="false" />
 
-  <xacro:include filename="$(find crane_x7_description)/urdf/crane_x7.xacro"/>
-  <xacro:crane_x7 parent="crane_x7_base_link"
+  <xacro:crane_x7 parent="base_link"
                   base_color="red"
                   shoulder_color="white"
                   shoulder_joint_cover_color="red"
@@ -43,46 +43,40 @@
   <xacro:property name="tool_position_x" value="0.01" />
   <xacro:property name="tool_position_z" value="${tool_length/2}" />
   <xacro:property name="tool_orientation_p" value="0.02" />
-  <xacro:property name="tool_end_position_z" value="0.35" />
-  <xacro:property name="ingredients_position_z" value="0.1" />
-  <xacro:property name="ingredients_radius" value="0.01" />
+  <!-- TODO(sara): resolve collision probrem -->
+  <xacro:property name="tool_end_position_z" value="0.39" />
 
   <link name="tool_link">
     <visual>
-      <origin rpy="0 ${tool_orientation_p} 0" xyz="${tool_position_x} 0 -${tool_position_z}"/>
+      <origin rpy="0 -${tool_orientation_p} 0" xyz="${tool_position_x} 0 -${tool_position_z}"/>
       <geometry>
         <cylinder radius="${tool_radius}" length="${tool_length}"/>
       </geometry>
     </visual>
     <visual>
-      <origin rpy="0 -${tool_orientation_p} 0" xyz="-${tool_position_x} 0 -${tool_position_z}"/>
+      <origin rpy="0 ${tool_orientation_p} 0" xyz="-${tool_position_x} 0 -${tool_position_z}"/>
       <geometry>
         <cylinder radius="${tool_radius}" length="${tool_length}"/>
       </geometry>
     </visual>
+    <collision>
+      <origin rpy="0 -${tool_orientation_p} 0" xyz="${tool_position_x} 0 -${tool_position_z}"/>
+      <geometry>
+        <cylinder radius="${tool_radius}" length="${tool_length}"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin rpy="0 ${tool_orientation_p} 0" xyz="-${tool_position_x} 0 -${tool_position_z}"/>
+      <geometry>
+        <cylinder radius="${tool_radius}" length="${tool_length}"/>
+      </geometry>
+    </collision>
   </link>
 
-  <joint name="tool_link_to_gripper_base_link" type="fixed">
+  <joint name="tool_link_to_gripper_base_joint" type="fixed">
     <origin rpy="0 0 0" xyz="0 0 ${tool_end_position_z}"/>
     <parent link="crane_x7_gripper_base_link" />
     <child link="tool_link" />
-  </joint>
-
-  <link name="bowl_link">
-    <visual>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry>
-        <mesh filename="package://stir_description/meshes/bowl5.stl"/>
-      </geometry>
-      <material name="clear">
-        <color rgba="0.8 0.8 0.8 0.8"/>
-      </material>
-    </visual>
-  </link>
-
-  <joint name="bowl_link_to_world" type="fixed">
-    <parent link="world" />
-    <child link="bowl_link" />
   </joint>
 
 </robot>

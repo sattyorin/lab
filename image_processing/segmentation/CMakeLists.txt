@@ -15,5 +15,5 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(OpenCV REQUIRED)
 
 add_executable(segmentation segmentation.cpp)
-target_include_directories(segmentation PRIVATE ${OpenCV_INCLUDE_DIRS} )
-target_link_libraries(segmentation ${OpenCV_LIBRARIES} )
+target_include_directories(segmentation PRIVATE ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(segmentation ${OpenCV_LIBRARIES})

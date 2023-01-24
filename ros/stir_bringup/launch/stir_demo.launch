@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- roslaunch crane_x7_bringup demo.launch fake_execution:=false -->
+
+  <arg name="debug" default="false" />
+  <arg name="fake_execution" default="false" />
+  <arg name="port" default="/dev/ttyUSB0" />
+  <arg name="use_gui" default="false" />
+  <arg name="use_gazebo" default="false" />
+  <arg name="load_robot_description" default="true" />
+  <arg name="port" default="/dev/ttyUSB0" />
+  <arg name="robot_description" default="robot_description" />
+  <arg name="robot"
+       default="$(find stir_description)/robot/crane_x7_with_tools.urdf.xacro" />
+  <arg name="position_controller_config_file"
+       default="$(find stir_bringup)/config/crane_x7_position_controllers.yaml" />
+  <arg name="velocity_controller_config_file"
+       default="$(find stir_bringup)/config/crane_x7_velocity_controllers.yaml" />
+  <arg name="stopped_position_controllers"
+       default="arm_position_controller"/>
+  <arg name="stopped_velocity_controllers"
+       default="arm_velocity_controller"/>
+  <arg name="arm_controller_type" default="velocity" />
+
+  <param name="$(arg robot_description)" 
+         command="$(find xacro)/xacro --inorder '$(arg robot)"/>
+  <param name="$(arg robot_description)_semantic"
+         textfile="$(find stir_description)/config/crane_x7_with_tools.srdf" />
+
+  <group ns="$(arg robot_description)_planning">
+    <rosparam command="load"
+              file="$(find crane_x7_moveit_config)/config/joint_limits.yaml"/>
+  </group>
+
+  <group ns="$(arg robot_description)_kinematics">
+    <rosparam command="load"
+              file="$(find crane_x7_moveit_config)/config/kinematics.yaml"/>
+  </group>
+ 
+  <node name="joint_state_publisher"
+        pkg="joint_state_publisher"
+        type="joint_state_publisher"
+        unless="$(arg use_gui)">
+    <rosparam param="/source_list">[/crane_x7/joint_states]</rosparam>
+  </node>
+  <node name="joint_state_publisher_gui"
+        pkg="joint_state_publisher_gui"
+        type="joint_state_publisher_gui"
+        if="$(arg use_gui)">
+    <rosparam param="/source_list">[/crane_x7/joint_states]</rosparam>
+  </node>
+  
+  <include file="$(find crane_x7_moveit_config)/launch/move_group.launch">
+    <arg name="load_plannning_context" value="false" />
+    <arg name="allow_trajectory_execution" value="true" />
+    <arg name="fake_execution" value="$(arg fake_execution)" />
+    <arg name="info" value="true" />
+    <arg name="debug" value="$(arg debug)" />
+    <arg name="port" value="$(arg port)" />
+    <arg name="use_gazebo" value="$(arg use_gazebo)" />
+  </include>
+
+  <group ns="/crane_x7" if="$(eval arg('arm_controller_type') == 'position')">
+    <rosparam file="$(arg position_controller_config_file)" command="load"/>
+    <node name="ros_control_stopped_spawner" pkg="controller_manager" type="spawner"
+      args="--stopped $(arg stopped_position_controllers)" output="screen" respawn="false" />
+  </group>
+
+  <group ns="/crane_x7" if="$(eval arg('arm_controller_type') == 'velocity')">
+    <rosparam file="$(arg velocity_controller_config_file)" command="load"/>
+    <node name="ros_control_stopped_spawner" pkg="controller_manager" type="spawner"
+      args="--stopped $(arg stopped_velocity_controllers)" output="screen" respawn="false" />
+  </group>
+
+  <include file="$(find crane_x7_moveit_config)/launch/moveit_rviz.launch">
+    <arg name="config" value="true" />
+    <arg name="debug" value="$(arg debug)" />
+  </include>
+
+  <include file="$(find stir_ros)/launch/pose_tracker.launch" unless="$(eval arg('arm_controller_type') == 'velocity')">
+    <arg name="arm_controller_type" value="$(arg arm_controller_type)" />
+  </include>
+  <include file="$(find stir_ros)/launch/bringup_servo.launch" if="$(eval arg('arm_controller_type') == 'velocity')">
+    <arg name="arm_controller_type" value="$(arg arm_controller_type)" />
+  </include>
+
+</launch>
+

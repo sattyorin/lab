@@ -3,18 +3,18 @@ import logging
 import random
 import sys
 
+import envs
 import gym
 import gym.wrappers
 import numpy as np
-import pfrl
 import torch
+from torch import nn
+
+import pfrl
 from pfrl import experiments, explorers, replay_buffers, utils
 from pfrl.agents.ddpg import DDPG
 from pfrl.nn import BoundByTanh, ConcatObsAndAction
 from pfrl.policies import DeterministicHead
-from torch import nn
-
-import envs
 
 
 def main():
@@ -32,7 +32,8 @@ def main():
     parser.add_argument(
         "--env",
         type=str,
-        default="stir-v0",
+        # default="stir-v0",
+        default="stir_gazebo-v0",
         # default="Hopper-v4",
         help="OpenAI Gym MuJoCo env to perform algorithm on.",
     )
@@ -206,10 +207,11 @@ def main():
                 )[0]
             )
 
-    eval_env = make_env(test=False)
+    # eval_env = make_env(test=False)
     if args.demo:
         eval_stats = experiments.eval_performance(
-            env=eval_env,
+            # env=eval_env,
+            env=env,
             agent=agent,
             n_steps=None,
             n_episodes=args.eval_n_runs,
@@ -233,7 +235,8 @@ def main():
             agent=agent,
             env=env,
             steps=args.steps,
-            eval_env=eval_env,
+            # eval_env=eval_env,
+            eval_env=env,
             eval_n_steps=None,
             eval_n_episodes=args.eval_n_runs,
             eval_interval=args.eval_interval,

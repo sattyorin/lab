@@ -16,9 +16,11 @@ find_package(OpenCV REQUIRED)
 find_package(realsense2 REQUIRED)
 
 add_executable(rs-imshow rs-imshow.cpp)
-target_include_directories(rs-imshow PRIVATE ${OpenCV_INCLUDE_DIRS} ${realsense2_INCLUDE_DIRS})
+target_include_directories(rs-imshow PRIVATE ${OpenCV_INCLUDE_DIRS}
+                                             ${realsense2_INCLUDE_DIRS})
 target_link_libraries(rs-imshow ${OpenCV_LIBRARIES} ${realsense2_LIBRARY})
 
 add_executable(test test.cpp)
-target_include_directories(test PRIVATE ${OpenCV_INCLUDE_DIRS} ${realsense2_INCLUDE_DIRS})
+target_include_directories(test PRIVATE ${OpenCV_INCLUDE_DIRS}
+                                        ${realsense2_INCLUDE_DIRS})
 target_link_libraries(test ${OpenCV_LIBRARIES} ${realsense2_LIBRARY})

@@ -81,6 +81,9 @@ class StirGazeboEnv(gym.Env):
         )
 
         if _ARM_CONTROLLER == "position":
+            print("----------")
+            print("stir_gazebo_env: use position controller")
+            print("----------")
             self._step = self.step_position_controller
             init_tool_euler_pose = np.concatenate(
                 [self.init_tool_pose[:3], euler]
@@ -94,6 +97,9 @@ class StirGazeboEnv(gym.Env):
                 + init_tool_euler_pose
             )
         elif _ARM_CONTROLLER == "velocity":
+            print("----------")
+            print("stir_gazebo_env: use velocity controller")
+            print("----------")
             self._step = self.step_position_controller
             action_low = -0.1
             action_high = 0.1

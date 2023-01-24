@@ -236,6 +236,9 @@ class StirGazeboEnv(gym.Env):
             _BOWL_TOP_POSITION_Z > a_wz1 * distance_end_to_bowl_top_xy + b_wz1
         )
 
+    def get_distance_score(self, distance: float) -> float:
+        return (1 + np.tanh((-abs(distance) * 200 + 5) / 2)) / 2
+
     def _get_reward(self, observation: np.ndarray) -> Tuple[float, bool]:
         reward = 0.0
         tool_pose = observation[:7]
@@ -244,11 +247,7 @@ class StirGazeboEnv(gym.Env):
         # velocity = np.linalg.norm(np.array([observation[7], observation[8]]))
         # reward_small_velocity = self.get_small_velocity_reward(velocity)
 
-        z_distance = (tool_pose[2] - self.init_tool_pose[2]) ** 2
-        normalization_distance = 0.00001
-        reward = normalization_distance / max(
-            normalization_distance, z_distance
-        )
+        reward = self.get_distance_score(tool_pose[2] - self.init_tool_pose[2])
 
         if self.init_tool_pose[2] - tool_pose[2] > 0.028:
             return reward, True

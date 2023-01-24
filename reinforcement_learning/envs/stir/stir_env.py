@@ -5,7 +5,7 @@ from typing import Dict, Tuple
 
 import mujoco
 import numpy as np
-from gym import spaces, utils
+from gym import utils
 from gym.envs.mujoco import MujocoEnv
 from gym.spaces import Box
 
@@ -145,11 +145,10 @@ class StirEnv(MujocoEnv, utils.EzPickle):
             **kwargs,
         )
 
-        self.action_space = spaces.Box(
-            low=np.array([0.0, 0.0]),
-            high=np.array([0.07, 0.1]),
-            dtype=np.float32,
-        )
+        self.action_space.low[0] = 0.0
+        self.action_space.low[1] = 0.0
+        self.action_space.high[0] = 0.07
+        self.action_space.high[1] = 0.1
 
         self.total_reward = 0.0
         self.pre_velocity_x = 0.0
@@ -161,7 +160,7 @@ class StirEnv(MujocoEnv, utils.EzPickle):
         self, action: np.ndarray
     ) -> Tuple[np.ndarray, float, bool, bool, dict]:
 
-        ctrl = np.zeros(self.action_space.shape)
+        ctrl = action.copy()
         ctrl[0] = action[0] * np.cos(self.pre_angle + action[1])
         ctrl[1] = action[0] * np.sin(self.pre_angle + action[1])
         self.pre_angle += action[1]

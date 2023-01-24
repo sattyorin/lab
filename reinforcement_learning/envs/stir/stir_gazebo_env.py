@@ -8,6 +8,7 @@ import tf
 from gym.spaces import Box
 from stir_ros import Stir
 
+_ARM_CONTROLLER = "position"
 _FRAME_SKIP = 1
 _TIME_STEP = 0.1
 _ACTION_SIZE = 6
@@ -75,8 +76,29 @@ class StirGazeboEnv(gym.Env):
 
         self.stir = Stir(self.init_tool_pose)
 
-        action_low = -0.1
-        action_high = 0.1
+        euler = tf.transformations.euler_from_quaternion(
+            self.init_tool_pose[3:]
+        )
+
+        if _ARM_CONTROLLER == "position":
+            self._step = self.step_position_controller
+            init_tool_euler_pose = np.concatenate(
+                [self.init_tool_pose[:3], euler]
+            )
+            action_low = (
+                np.array([-0.05, -0.05, -0.05, -0.1, -0.1, -0.1])
+                + init_tool_euler_pose
+            )
+            action_high = (
+                np.array([0.05, 0.05, 0.05, 0.1, 0.1, 0.1])
+                + init_tool_euler_pose
+            )
+        elif _ARM_CONTROLLER == "velocity":
+            self._step = self.step_position_controller
+            action_low = -0.1
+            action_high = 0.1
+        else:
+            raise ValueError("_ARM_CONTROLLER is invalid")
 
         self.action_space = Box(
             low=action_low,
@@ -85,14 +107,18 @@ class StirGazeboEnv(gym.Env):
             dtype=np.float32,
         )
 
+    def step_position_controller(self, action: np.ndarray) -> None:
+        q = tf.transformations.quaternion_from_euler(*action[3:])
+        pose_target = np.concatenate([action[0:3], q])
+        self.stir.step_position_controller(pose_target)
+
+    def step_velocity_controller(self, action: np.ndarray) -> None:
+        self.stir.step_velocity_controller(action)
+
     def step(
         self, action: np.ndarray
     ) -> Tuple[np.ndarray, float, bool, bool, dict]:
-        # TODO(sara): add switcher
-        self.stir.step(action)
-        # q = tf.transformations.quaternion_from_euler(*action[3:])
-        # pose_target = np.concatenate([action[0:3], q])
-        # self.stir.step(pose_target)
+        self._step(action)
         observation = self._get_observation()
         reward, terminated = self._get_reward(observation)
         info: Dict[str, str] = {}

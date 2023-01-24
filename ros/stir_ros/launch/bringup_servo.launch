@@ -3,6 +3,8 @@
   <arg name="arm_controller_type" default="velocity" />
   <param name="arm_controller_type" value="$(arg arm_controller_type)" />
   <group ns="bringup_servo_node">
+    <param name="publish_joint_positions" value="false" />
+    <param name="publish_joint_velocities" value="true" />
     <rosparam command="load" file="$(find stir_ros)/config/moveit_servo.yaml" />
     <rosparam command="load" file="$(find stir_ros)/config/pose_tracking_settings.yaml" />
     <group if="$(eval arg('arm_controller_type') == 'velocity')">

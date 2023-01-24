@@ -4,6 +4,8 @@
   <param name="arm_controller_type" value="$(arg arm_controller_type)" />
   <group ns="pose_tracking_node">
     <rosparam command="load" file="$(find stir_ros)/config/moveit_servo.yaml" />
+    <param name="publish_joint_positions" value="true" />
+    <param name="publish_joint_velocities" value="false" />
     <rosparam command="load" file="$(find stir_ros)/config/pose_tracking_settings.yaml" />
     <group if="$(eval arg('arm_controller_type') == 'position')">
       <param name="controller_command_topic" value="/crane_x7/arm_position_controller/command" />

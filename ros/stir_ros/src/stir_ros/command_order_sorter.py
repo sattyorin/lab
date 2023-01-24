@@ -63,8 +63,6 @@ class Sorter:
         else:
             rospy.logerr("set publish joint position or state to true")
 
-        callback = self._callback_velocity
-
         self._latest_joint_state = np.array(
             rospy.wait_for_message(JOINT_STATES, JointState).position
         )[1:]
@@ -94,10 +92,10 @@ class Sorter:
         )
 
     def _joint_states_callback(self, states: JointState) -> None:
-        # self._latest_joint_state = np.array(states.position[1:])
-        self._latest_joint_state += (
-            np.array(states.position[1:]) - self._latest_joint_state
-        ) * ALPHA
+        self._latest_joint_state = np.array(states.position[1:])
+        # self._latest_joint_state += (
+        #     np.array(states.position[1:]) - self._latest_joint_state
+        # ) * ALPHA
 
     def _callback_position(self, msg: Float64MultiArray) -> None:
         new_msg = Float64MultiArray()

@@ -3,23 +3,30 @@ import numpy as np
 import rospy
 from geometry_msgs.msg import PoseStamped, TwistStamped
 
-STIR_ROS_NODE = "bringup_servo_node"  # or pose_tracking_node
+POSITION_CONTROLLER_STIR_ROS_NODE = "pose_tracking_node"
+VELOCITY_CONTROLLER_STIR_ROS_NODE = "bringup_servo_node"
 
 
 class StirRosTest:
     def __init__(self) -> None:
+        arm_controller_type = rospy.get_param("/arm_controller_type")
+        if arm_controller_type == "position":
+            stir_ros_node = POSITION_CONTROLLER_STIR_ROS_NODE
+        elif arm_controller_type == "velocity":
+            stir_ros_node = VELOCITY_CONTROLLER_STIR_ROS_NODE
+
         param_cartesian_command_in_topic = rospy.get_param(
-            f"{STIR_ROS_NODE}/cartesian_command_in_topic"
+            f"{stir_ros_node}/cartesian_command_in_topic"
         )
 
         self._cartesian_command_publisher = rospy.Publisher(
-            f"{STIR_ROS_NODE}/{param_cartesian_command_in_topic}",
+            f"{stir_ros_node}/{param_cartesian_command_in_topic}",
             TwistStamped,
             queue_size=1,
         )
 
         self._target_pose_publishre = rospy.Publisher(
-            f"{STIR_ROS_NODE}/target_pose", PoseStamped, queue_size=1
+            f"{stir_ros_node}/target_pose", PoseStamped, queue_size=1
         )
 
     def publish_twist_stamped(self, theta: float, max_velocity: float) -> None:
@@ -37,7 +44,7 @@ class StirRosTest:
     def publish_target_pose(self, theta: float, radius: float) -> None:
         target_pose_stampd = PoseStamped()
         target_pose_stampd.header.stamp = rospy.Time.now()
-        target_pose_stampd.header.frame_id = "base_link"
+        target_pose_stampd.header.frame_id = "world"
         target_pose_stampd.pose.position.x = radius * np.cos(theta) + 0.375
         target_pose_stampd.pose.position.y = radius * np.sin(theta) - 0.015
         target_pose_stampd.pose.position.z = 0.0 - 0.14

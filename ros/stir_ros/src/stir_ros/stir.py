@@ -29,11 +29,10 @@ STEP_WORLD = "/gazebo/step_world"
 UNPAUSE_PHYSICS = "/gazebo/unpause_physics"
 PAUSE_PHYSICS = "/gazebo/pause_physics"
 JOINT_STATES = "/crane_x7/joint_states"
-STIR_ROS_NODE = "bringup_servo_node"  # or pose_tracking_node
-TARGET_POSE = f"/{STIR_ROS_NODE}/target_pose"
+POSITION_CONTROLLER_STIR_ROS_NODE = "pose_tracking_node"
+VELOCITY_CONTROLLER_STIR_ROS_NODE = "bringup_servo_node"
 SWITCH_CONTROLLER = "/crane_x7/controller_manager/switch_controller"
 LIST_CONTROLLERS = "/crane_x7/controller_manager/list_controllers"
-CARTESIAN_COMMAND_IN_TOPIC = f"/{STIR_ROS_NODE}/cartesian_command_in_topic"
 NUM_INGREDIENTS = 4  # TODO(sara):get from urdf
 NUM_INGREDIENT_POSES = 3  # TODO(sara):get from urdf
 INGREDIENT = "ingredient"
@@ -61,8 +60,10 @@ class Stir:
         arm_controller_type = rospy.get_param("/arm_controller_type")
         if arm_controller_type == "position":
             self._controller = POSITION_CONTROLLER
+            stir_ros_node = POSITION_CONTROLLER_STIR_ROS_NODE
         elif arm_controller_type == "velocity":
             self._controller = VELOCITY_CONTROLLER
+            stir_ros_node = VELOCITY_CONTROLLER_STIR_ROS_NODE
         else:
             rospy.logerr("invalid controller")
 
@@ -106,14 +107,14 @@ class Stir:
         )
 
         self._target_pose_publisher = rospy.Publisher(
-            TARGET_POSE, PoseStamped, queue_size=1
+            f"/{stir_ros_node}/target_pose", PoseStamped, queue_size=1
         )
 
         param_cartesian_command_in_topic = rospy.get_param(
-            CARTESIAN_COMMAND_IN_TOPIC
+            f"/{stir_ros_node}/cartesian_command_in_topic"
         )
         self._cartesian_command_publisher = rospy.Publisher(
-            f"/{STIR_ROS_NODE}/{param_cartesian_command_in_topic}",
+            f"/{stir_ros_node}/{param_cartesian_command_in_topic}",
             TwistStamped,
             queue_size=1,
         )
@@ -298,11 +299,13 @@ class Stir:
         twist_stamped.twist.angular.z = twist[5]
         self._cartesian_command_publisher.publish(twist_stamped)
 
-    def step(self, action: np.ndarray) -> None:
-        # TODO(sara): add switcher
+    def step_position_controller(self, action: np.ndarray) -> None:
+        self._publish_target_pose(action)
+        self._step_world_proxy()
+
+    def step_velocity_controller(self, action: np.ndarray) -> None:
         self._publish_twist_stamped(action)
         self._step_world_proxy()
-        # self._publish_target_pose(action)
 
     def _switch_controller(
         self, start_controller: string, stop_controller: string

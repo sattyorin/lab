@@ -48,6 +48,8 @@ PoseTracker::PoseTracker()
   tracker_->resetTargetPose();
 
   while (ros::ok()) {
+    tracker_->stopMotion();
+    tracker_->resetTargetPose();
     tracker_->moveToPose(kPositionalTolerance, kAngularTolerance,
                          kTargetPoseTimeout);
   }

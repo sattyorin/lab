@@ -50,6 +50,7 @@ PoseTracker::PoseTracker()
   while (ros::ok()) {
     tracker_->stopMotion();
     tracker_->resetTargetPose();
+    // TODO(sara): not use moveToPose
     tracker_->moveToPose(kPositionalTolerance, kAngularTolerance,
                          kTargetPoseTimeout);
   }

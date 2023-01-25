@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<mujoco>
+  <actuator>
+    <velocity name="x" site="site_tools" refsite="world" gear="1 0 0 0 0 0" kv="80" />
+    <velocity name="y" site="site_tools" refsite="world" gear="0 1 0 0 0 0" kv="80" />
+    <velocity name="z" site="site_tools" refsite="world" gear="0 0 1 0 0 0" kv="150" />
+    <velocity name="rx" site="site_tools" refsite="world" gear="0 0 0 1 0 0" kv="80" />
+    <velocity name="ry" site="site_tools" refsite="world" gear="0 0 0 0 1 0" kv="80" />
+    <velocity name="rz" site="site_tools" refsite="world" gear="0 0 0 0 0 1" kv="80" />
+  </actuator>
+</mujoco>

@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<mujoco>
+  <option timestep="0.0025" />
+  <asset>
+    <mesh file="../meshes/cooking_bowl_bottom.stl" name="cooking_bowl_bottom" />
+    <mesh file="../meshes/cooking_bowl_fragment.stl" name="cooking_bowl_fragment" />
+  </asset>
+  <default>
+    <joint armature="100.0" damping="300" limited="true" />
+    <!-- <joint armature="1.0" damping="300" limited="true" /> -->
+  </default>
+</mujoco>

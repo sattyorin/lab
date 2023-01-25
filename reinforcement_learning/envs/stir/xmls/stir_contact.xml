@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<mujoco>
+  <contact>
+    <pair name="contact_pair0" geom1="geom_bowl_bottom0" geom2="geom_ingredient0" friction="1 1 0.005 0.1 0.1" />
+    <pair name="contact_pair1" geom1="geom_bowl_bottom0" geom2="geom_ingredient1" friction="1 1 0.005 0.1 0.1" />
+    <pair name="contact_pair2" geom1="geom_bowl_bottom0" geom2="geom_ingredient2" friction="1 1 0.005 0.1 0.1" />
+    <pair name="contact_pair3" geom1="geom_bowl_bottom0" geom2="geom_ingredient3" friction="1 1 0.005 0.1 0.1" />
+  </contact>
+</mujoco>

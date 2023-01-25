@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<mujoco model="stir-v0">
+<mujoco model="stir-v1">
   <include file="stir_header.xml" />
   <worldbody>
     <include file="stir_worldbody.xml" />
@@ -7,6 +7,5 @@
     <include file="stir_ingredients_15cube4.xml" />
   </worldbody>
   <include file="stir_contact.xml" />
-  <include file="stir_actuator_velocity_all.xml" />
-  <!-- <include file="stir_actuator_position_all.xml" /> -->
+  <include file="stir_actuator_position_xy.xml" />
 </mujoco>

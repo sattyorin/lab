@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<mujoco>
+  <body name="ingredient0" pos="0.03 0.03 0.12">
+    <joint name="joint_ingredient0" type="free" />
+    <geom name="geom_ingredient0" type="box" size="0.015 0.015 0.015" rgba="1.0 0 0 0.8" />
+  </body>
+  <body name="ingredient1" pos="-0.02 0.02 0.12">
+    <freejoint name="joint_ingredient1" />
+    <geom name="geom_ingredient1" type="box" size="0.015 0.015 0.015" rgba="1.0 0 0 0.8" />
+  </body>
+  <body name="ingredient2" pos="0.03 -0.02 0.12">
+    <freejoint name="joint_ingredient2" />
+    <geom name="geom_ingredient2" type="box" size="0.015 0.015 0.015" rgba="0 1.0 0 0.8" />
+  </body>
+  <body name="ingredient3" pos="-0.03 -0.03 0.12">
+    <freejoint name="joint_ingredient3" />
+    <geom name="geom_ingredient3" type="box" size="0.015 0.015 0.015" rgba="0 1.0 0 0.8" />
+  </body>
+</mujoco>

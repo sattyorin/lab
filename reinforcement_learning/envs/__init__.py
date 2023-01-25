@@ -8,7 +8,7 @@ gym.envs.registration.register(
 
 gym.envs.registration.register(
     id="stir-v0",
-    entry_point="envs.stir.stir_env:StirMujocoEnv",
+    entry_point="envs.stir.stir_mujoco_env:StirMujocoEnv",
     max_episode_steps=1000,
 )
 

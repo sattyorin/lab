@@ -23,8 +23,6 @@ _BOWL_GEOM_NUM = 16  # TODO(sara): get num from model
 _THRESHOLD_RESET_DISTANCE = 0.02
 _RESET_NOISE_SCALE = 0.01
 
-# TODO(sara): change file name to stir_mujoco_env
-
 
 class StirMujocoEnv(MujocoEnv, utils.EzPickle, StirEnv):
     metadata = {

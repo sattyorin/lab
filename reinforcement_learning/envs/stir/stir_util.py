@@ -3,20 +3,15 @@ import tf
 
 
 def get_euler_pose_from_quaternion(pose: np.ndarray) -> np.ndarray:
-    """
-    wxyz -> xyzw
-    """
     return np.concatenate(
         [
             pose[:3],
-            tf.transformations.euler_from_quaternion(
-                np.insert(pose[4:], 0, pose[3])
-            ),
+            tf.transformations.euler_from_quaternion(pose[3:]),
         ]
     )
 
 
-def get_distance_between_two_centroid(
+def get_distance_between_two_centroids(
     ingredient_positions: np.ndarray, every_other_ingredients: bool
 ) -> float:
     """
@@ -62,3 +57,7 @@ def get_penalty_large_control(action: np.ndarray) -> float:
 
 def get_penalty_small_control(action: np.ndarray) -> float:
     return np.reciprocal(np.sum(np.power(action, 2)))  # 14
+
+
+def get_distance_score(distance: float) -> float:
+    return (1 + np.tanh((-abs(distance) * 200 + 5) / 2)) / 2

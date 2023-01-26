@@ -37,6 +37,8 @@ class IStirEnv:
                 f"observation_ingredient_position shape should be (7,), but is {observation_ingredient_pose.shape}"
             )
 
+        self._is_position_controller = is_position_controller
+        self._is_velocity_controller = is_velocity_controller
         self._observation_tool_pose = observation_tool_pose
         self._observation_tool_velocity = observation_tool_velocity
         self._observation_ingredient_pose = observation_ingredient_pose

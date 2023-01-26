@@ -34,7 +34,7 @@ VELOCITY_CONTROLLER_STIR_ROS_NODE = "bringup_servo_node"
 SWITCH_CONTROLLER = "/crane_x7/controller_manager/switch_controller"
 LIST_CONTROLLERS = "/crane_x7/controller_manager/list_controllers"
 NUM_INGREDIENTS = 4  # TODO(sara):get from urdf
-NUM_INGREDIENT_POSES = 3  # TODO(sara):get from urdf
+NUM_INGREDIENT_POSES = 7  # TODO(sara):get from urdf
 INGREDIENT = "ingredient"
 INGREDIENTS_MODEL = "ingredient_cube"
 LINK = "link"
@@ -224,6 +224,18 @@ class Stir:
             self._ingredient_buffer[i * 3] = states.pose[obs_i].position.x
             self._ingredient_buffer[i * 3 + 1] = states.pose[obs_i].position.y
             self._ingredient_buffer[i * 3 + 2] = states.pose[obs_i].position.z
+            self._ingredient_buffer[i * 3 + 3] = states.pose[
+                obs_i
+            ].orientation.x
+            self._ingredient_buffer[i * 3 + 4] = states.pose[
+                obs_i
+            ].orientation.y
+            self._ingredient_buffer[i * 3 + 5] = states.pose[
+                obs_i
+            ].orientation.z
+            self._ingredient_buffer[i * 3 + 6] = states.pose[
+                obs_i
+            ].orientation.w
 
     def _joint_states_callback(self, states: JointState) -> None:
         self.latest_joint_state = states

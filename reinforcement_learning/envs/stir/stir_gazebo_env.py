@@ -1,17 +1,16 @@
 import random
 from enum import Enum
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, Optional, Tuple
 
 import gym
 import numpy as np
 import tf
-from gym.spaces import Box
+from envs.stir.stir_env2 import StirEnv2 as StirEnv
+from envs.stir.stir_util import get_distance_between_two_centroids
 from stir_ros import Stir
 
-_ARM_CONTROLLER = "position"
 _FRAME_SKIP = 1
 _TIME_STEP = 0.1
-_ACTION_SIZE = 6
 _NUM_INGREDIENTS = 0  # TODO(sara)
 _OBSERVATION_SIZE_TOOL = 7 + 6
 _OBSERVATION_SIZE_INGREDIENTS = 3
@@ -43,7 +42,7 @@ class Observation(Enum):
     TOOL_ORIENTATION_W = 6
 
 
-class StirGazeboEnv(gym.Env):
+class StirGazeboEnv(gym.Env, StirEnv):
     metadata = {
         "render_modes": [
             "human",
@@ -57,61 +56,32 @@ class StirGazeboEnv(gym.Env):
         np.random.seed(0)
         random.seed(0)
 
-        self.num_ingredients = _NUM_INGREDIENTS
+        self._num_ingredients = _NUM_INGREDIENTS
         self.observation_size_tool = _OBSERVATION_SIZE_TOOL
         self.num_step = 0
         self._previous_tool_pose_euler = np.zeros(6, dtype=float)
         self._previous_sec: Optional[float] = None
 
-        self.observation_space = Box(
-            low=-np.inf,
-            high=np.inf,
-            shape=(_OBSERVATION_SIZE,),
-            dtype=np.float64,
-        )
-
-        self.init_tool_pose = np.array(
+        self._init_tool_pose = np.array(
             [0.374, -0.015, -0.139, -0.184, 0.936, -0.279, 0.114]
         )  # TODO(sara): get pose from somewhere
 
-        self.stir = Stir(self.init_tool_pose)
+        self.stir = Stir(self._init_tool_pose)
 
-        euler = tf.transformations.euler_from_quaternion(
-            self.init_tool_pose[3:]
-        )
+        StirEnv.__init__(self, self._init_tool_pose)
 
-        if _ARM_CONTROLLER == "position":
+        if self._is_position_controller:
             print("----------")
             print("stir_gazebo_env: use position controller")
             print("----------")
             self._step = self.step_position_controller
-            init_tool_euler_pose = np.concatenate(
-                [self.init_tool_pose[:3], euler]
-            )
-            action_low = (
-                np.array([-0.05, -0.05, -0.05, -0.1, -0.1, -0.1])
-                + init_tool_euler_pose
-            )
-            action_high = (
-                np.array([0.05, 0.05, 0.05, 0.1, 0.1, 0.1])
-                + init_tool_euler_pose
-            )
-        elif _ARM_CONTROLLER == "velocity":
+        elif self._is_velocity_controller:
             print("----------")
             print("stir_gazebo_env: use velocity controller")
             print("----------")
-            self._step = self.step_position_controller
-            action_low = -0.1
-            action_high = 0.1
+            self._step = self.step_velocity_controller
         else:
-            raise ValueError("_ARM_CONTROLLER is invalid")
-
-        self.action_space = Box(
-            low=action_low,
-            high=action_high,
-            shape=(_ACTION_SIZE,),
-            dtype=np.float32,
-        )
+            raise ValueError("controller not selected")
 
     def step_position_controller(self, action: np.ndarray) -> None:
         q = tf.transformations.quaternion_from_euler(*action[3:])
@@ -124,7 +94,7 @@ class StirGazeboEnv(gym.Env):
     def step(
         self, action: np.ndarray
     ) -> Tuple[np.ndarray, float, bool, bool, dict]:
-        self._step(action)
+        self._step(self._get_controller_input(action))
         observation = self._get_observation()
         reward, terminated = self._get_reward(observation)
         info: Dict[str, str] = {}
@@ -135,51 +105,39 @@ class StirGazeboEnv(gym.Env):
     def render(self):
         return None
 
-    def _get_distance_between_two_centroids(
-        self, observation: np.ndarray
-    ) -> float:
-        ingredients = observation[self.observation_size_tool :].reshape(-1, 3)
-        centroid1 = np.mean(
-            ingredients[0 : (self.num_ingredients // 2)], axis=0
-        )
-        centroid2 = np.mean(ingredients[(self.num_ingredients // 2) :], axis=0)
-        distance = np.linalg.norm(centroid1[0:2] - centroid2[0:2])
-
-        return distance
-
-    def get_small_velocity_reward(self, velocity: float) -> float:
-        return 1 - np.exp(
-            -velocity / (_TARGET_VELOCITY - _TARGET_VELOCITY * 0.7)
-        )
-
     def reset(
         self, *, seed: Optional[int] = None, options: Optional[dict] = None
     ) -> np.ndarray:
 
         self.stir.reset_robot()
 
-        if self.num_ingredients > 0:
+        if self._num_ingredients > 0:
             for _ in range(_MAX_TRIAL_INGREDIENT_RANDOMIZATION):
                 radius = np.random.uniform(
                     _RESET_INGREDIENTS_RADIUS_MIN,
                     _RESET_INGREDIENTS_RADIUS_MAX,
-                    size=self.num_ingredients,
+                    size=self._num_ingredients,
                 )
                 angle = np.random.uniform(
-                    0.0, 2 * np.pi, size=self.num_ingredients
+                    0.0, 2 * np.pi, size=self._num_ingredients
                 )
                 init_ingredient_poses = np.vstack(
                     [
                         radius * np.cos(angle),
                         radius * np.sin(angle),
-                        _INGREDIENTS_POSITION_Z * np.ones(self.num_ingredients),
+                        _INGREDIENTS_POSITION_Z
+                        * np.ones(self._num_ingredients),
                     ]
                 ).transpose()
 
                 self.stir.reset_ingredient(init_ingredient_poses)
-                observation = self._get_observation()
+                # TODO(sara): self._observation_ingredient_pose[:3]?
                 if (
-                    self._get_distance_between_two_centroids(observation)
+                    get_distance_between_two_centroids(
+                        self.stir.get_ingredient_poses()
+                        .reshape(-1, 7)[:, self._observation_ingredient_pose]
+                        .flatten()
+                    )
                     > _THRESHOLD_DISTANCE * 2.0
                 ):
                     break
@@ -205,17 +163,19 @@ class StirGazeboEnv(gym.Env):
             not self._previous_sec
             or abs(sec - self._previous_sec) < np.finfo(float).eps
         ):
-            velocity = np.zeros(6, dtype=float)
+            tool_velocity = np.zeros(6, dtype=float)
         else:
-            velocity = (tool_pose_euler - self._previous_tool_pose_euler) / (
-                sec - self._previous_sec
-            )
+            tool_velocity = (
+                tool_pose_euler - self._previous_tool_pose_euler
+            ) / (sec - self._previous_sec)
 
         observation = np.concatenate(
             [
-                tool_pose,
-                velocity,
-                # self.stir.get_ingredient_poses(),
+                tool_pose[self._observation_tool_pose],
+                tool_velocity[self._observation_tool_velocity],
+                self.stir.get_ingredient_poses()
+                .reshape(-1, 7)[:, self._observation_ingredient_pose]
+                .flatten(),
             ]
         )
         self._previous_tool_pose_euler = tool_pose_euler
@@ -231,7 +191,7 @@ class StirGazeboEnv(gym.Env):
             _BOWL_TOP_POSITION_Z - _BOWL_BOTTOM_POSITION_Z
         )
         if np.hypot(
-            *(end_pose[:2] - self.init_tool_pose[:2])
+            *(end_pose[:2] - self._init_tool_pose[:2])
         ) > _BOWL_RADIUS_BOTTOM + a * (end_pose[2] - _BOWL_BOTTOM_POSITION_Z):
             return True
 
@@ -267,29 +227,3 @@ class StirGazeboEnv(gym.Env):
         return (
             _BOWL_TOP_POSITION_Z > a_wz1 * distance_end_to_bowl_top_xy + b_wz1
         )
-
-    def get_distance_score(self, distance: float) -> float:
-        return (1 + np.tanh((-abs(distance) * 200 + 5) / 2)) / 2
-
-    def _get_reward(self, observation: np.ndarray) -> Tuple[float, bool]:
-        reward = 0.0
-        tool_pose = observation[:7]
-        # tool_velocity = observation[:7]
-
-        # velocity = np.linalg.norm(np.array([observation[7], observation[8]]))
-        # reward_small_velocity = self.get_small_velocity_reward(velocity)
-
-        reward = self.get_distance_score(tool_pose[2] - self.init_tool_pose[2])
-
-        if self.init_tool_pose[2] - tool_pose[2] > 0.028:
-            return reward, True
-
-        if tool_pose[2] - self.init_tool_pose[2] > 0.02:
-            return reward, True
-
-        if self._check_collision_with_bowl(
-            self.stir.get_tool_pose()[0], self.stir.get_gripper_pose()[0]
-        ):
-            return reward, True
-
-        return reward, False

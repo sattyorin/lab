@@ -57,7 +57,6 @@ class StirEnv0(IStirEnv):
         )
 
     def _get_controller_input(self, action: np.ndarray) -> np.ndarray:
-        print(action)
         return action
 
     def _get_reward(self, observation: np.ndarray) -> Tuple[float, bool]:
@@ -75,7 +74,7 @@ class StirEnv0(IStirEnv):
         )
         self._total_velocity_reward += reward_small_velocity
 
-        distance = stir_util.get_distance_between_two_centroid(
+        distance = stir_util.get_distance_between_two_centroids(
             ingredient_positions.reshape(
                 -1, self._dimension_ingredient_distance
             ),
@@ -85,7 +84,7 @@ class StirEnv0(IStirEnv):
 
         reward = reward_small_velocity + reward_distance
 
-        # if self._detect_collision():
+        # if self._check_collision_with_bowl():
         #     return -100, True
         # if self._total_velocity_reward / (self.num_step + 1) < 0.2:
         #     print(self._total_velocity_reward)
@@ -94,7 +93,5 @@ class StirEnv0(IStirEnv):
         # if distance < _THRESHOLD_DISTANCE:
         #     print("done")
         #     return 100, True
-
-        self._every_other_ingredients = not self._every_other_ingredients
 
         return reward, False

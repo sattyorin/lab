@@ -4,12 +4,12 @@ from typing import Dict, Tuple
 
 import mujoco
 import numpy as np
-from gym import utils
-from gym.envs.mujoco import MujocoEnv
 
 # TODO(sara): add switcher
-from .stir_env0 import StirEnv0 as StirEnv
-from .stir_util import get_distance_between_two_centroid
+from envs.stir.stir_env0 import StirEnv0 as StirEnv
+from envs.stir.stir_util import get_distance_between_two_centroids
+from gym import utils
+from gym.envs.mujoco import MujocoEnv
 
 _FRAME_SKIP = 40
 _TIME_STEP = 0.0025
@@ -22,6 +22,7 @@ _TOOL_GEOM_NUM = 2  # TODO(sara): get num from model
 _BOWL_GEOM_NUM = 16  # TODO(sara): get num from model
 _THRESHOLD_RESET_DISTANCE = 0.02
 _RESET_NOISE_SCALE = 0.01
+_MAX_TRIAL_INGREDIENT_RANDOMIZATION = 100
 
 
 class StirMujocoEnv(MujocoEnv, utils.EzPickle, StirEnv):
@@ -58,6 +59,9 @@ class StirMujocoEnv(MujocoEnv, utils.EzPickle, StirEnv):
         self._init_tool_pose = self.data.qpos[
             _TOOL_POSE_INDEX : _TOOL_POSE_INDEX + 7
         ]
+        self._init_tool_pose = np.append(
+            np.delete(self._init_tool_pose, 3), self._init_tool_pose[3]
+        )
 
         # get num_ingredients
         self._num_ingredients = 0
@@ -173,7 +177,7 @@ class StirMujocoEnv(MujocoEnv, utils.EzPickle, StirEnv):
     def reset_model(self) -> np.ndarray:
 
         if self._num_ingredients > 0:
-            for _ in range(100):
+            for _ in range(_MAX_TRIAL_INGREDIENT_RANDOMIZATION):
                 mujoco.mj_resetData(self.model, self.data)
                 for i in range(self._num_ingredients):
                     radius = np.random.uniform(
@@ -190,7 +194,7 @@ class StirMujocoEnv(MujocoEnv, utils.EzPickle, StirEnv):
                     )
                 mujoco.mj_forward(self.model, self.data)
                 if (
-                    get_distance_between_two_centroid(
+                    get_distance_between_two_centroids(
                         self.data.qpos[_INGREDIENTS_POSE_INDEX:].reshape(-1, 7)[
                             :, :2
                         ],
@@ -224,6 +228,7 @@ class StirMujocoEnv(MujocoEnv, utils.EzPickle, StirEnv):
         self.num_step = 0
         self._previous_angle = 0.0  # TODO(sara): generalize it
         self._every_other_ingredients = False
+        self._every_other_ingredients = not self._every_other_ingredients
 
         return self._get_observation()
 
@@ -231,10 +236,13 @@ class StirMujocoEnv(MujocoEnv, utils.EzPickle, StirEnv):
         tool_pose = self.data.qpos[_TOOL_POSE_INDEX : _TOOL_POSE_INDEX + 7][
             self._observation_tool_pose
         ]
+        # wxyz -> xyzw
+        tool_pose = np.append(np.delete(tool_pose, 3), tool_pose[3])
         tool_velocity = self.data.qvel[_TOOL_POSE_INDEX : _TOOL_POSE_INDEX + 6][
             self._observation_tool_velocity
         ]
 
+        # ingredient_pose: wxyz
         ingredient_pose = (
             self.data.qpos[_INGREDIENTS_POSE_INDEX:]
             .reshape(-1, 7)[:, self._observation_ingredient_pose]
@@ -246,7 +254,7 @@ class StirMujocoEnv(MujocoEnv, utils.EzPickle, StirEnv):
         )
         return observation
 
-    def _detect_collision(self) -> bool:
+    def _check_collision_with_bowl(self) -> bool:
         for i in range(self.data.contact.geom1.size):
             if self.data.contact.geom1[i] in self._bowl_geom_ids:
                 if self.data.contact.geom2[i] in self._tool_geom_ids:

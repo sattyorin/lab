@@ -7,7 +7,6 @@
   <arg name="port" default="/dev/ttyUSB0" />
   <arg name="use_gui" default="false" />
   <arg name="use_gazebo" default="false" />
-  <arg name="load_robot_description" default="true" />
   <arg name="robot_description" default="robot_description" />
   <arg name="robot"
        default="$(find stir_description)/robot/crane_x7_with_tools.urdf.xacro" />
@@ -50,6 +49,7 @@
   </node>
   
   <include file="$(find crane_x7_moveit_config)/launch/move_group.launch">
+    <arg name="load_robot_description" value="false" />
     <arg name="load_planning_context" value="false" />
     <arg name="allow_trajectory_execution" value="true" />
     <arg name="fake_execution" value="$(arg fake_execution)" />

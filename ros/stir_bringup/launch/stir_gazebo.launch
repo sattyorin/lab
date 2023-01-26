@@ -37,7 +37,7 @@
   <arg name="robot_base_link_offset_x" default="0.0" />
   <arg name="arm_controller_type" default="velocity" />
 
-  <param name="robot_description"
+  <param name="$(arg robot_description)"
          command="$(find xacro)/xacro --inorder '$(arg robot)'" />
   <param name="$(arg robot_description)_semantic"
          textfile="$(find stir_description)/config/crane_x7_with_tools.srdf" />
@@ -105,7 +105,7 @@
         output="screen" />
 
   <include file="$(find crane_x7_moveit_config)/launch/move_group.launch">
-    <arg name="load_plannning_context" value="false" />
+    <arg name="load_planning_context" value="false" />
     <arg name="allow_trajectory_execution" value="true" />
     <arg name="fake_execution" value="$(arg fake_execution)" />
     <arg name="info" value="true" />

@@ -358,4 +358,5 @@
         </geometry>
       </visual>
     </link>
-  </model></sdf>
+  </model>
+</sdf>

@@ -228,7 +228,6 @@ class StirMujocoEnv(MujocoEnv, utils.EzPickle, StirEnv):
         self.num_step = 0
         self._previous_angle = 0.0  # TODO(sara): generalize it
         self._every_other_ingredients = False
-        self._every_other_ingredients = not self._every_other_ingredients
 
         return self._get_observation()
 

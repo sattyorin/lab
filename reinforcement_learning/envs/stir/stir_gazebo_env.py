@@ -11,25 +11,16 @@ from stir_ros import Stir
 
 _FRAME_SKIP = 1
 _TIME_STEP = 0.1
-_NUM_INGREDIENTS = 0  # TODO(sara)
-_OBSERVATION_SIZE_TOOL = 7 + 6
-_OBSERVATION_SIZE_INGREDIENTS = 3
-_OBSERVATION_SIZE = (
-    _OBSERVATION_SIZE_TOOL + _NUM_INGREDIENTS * _OBSERVATION_SIZE_INGREDIENTS
-)
 _RESET_INGREDIENTS_RADIUS_MIN = 0.02
 _RESET_INGREDIENTS_RADIUS_MAX = 0.04
-_INGREDIENTS_POSITION_Z = 0.05
 _THRESHOLD_DISTANCE = 0.01
 _MAX_TRIAL_INGREDIENT_RANDOMIZATION = 100
 _TARGET_VELOCITY = 0.02
-# _BOWL_RADIUS_TOP = 0.12
-# _BOWL_RADIUS_BOTTOM = 0.08
-# _BOWL_TOP_POSITION_Z = -0.139 + 0.06 - 0.04  # init_tool_pose + height + alpha
-_BOWL_RADIUS_TOP = 0.11
-_BOWL_RADIUS_BOTTOM = 0.07
-_BOWL_TOP_POSITION_Z = -0.129 + 0.05 - 0.03  # init_tool_pose + height + alpha
-_BOWL_BOTTOM_POSITION_Z = -0.139
+_TOOLS_RADIUS = 0.008
+_BOWL_RADIUS_TOP = 0.0712 - _TOOLS_RADIUS
+_BOWL_RADIUS_BOTTOM = 0.04 - _TOOLS_RADIUS
+_BOWL_HEIGHT = 0.054 - _TOOLS_RADIUS
+_BOWL_BOTTOM_TO_INIT_Z = 0.013 - _TOOLS_RADIUS
 
 
 class Observation(Enum):
@@ -56,17 +47,12 @@ class StirGazeboEnv(gym.Env, StirEnv):
         np.random.seed(0)
         random.seed(0)
 
-        self._num_ingredients = _NUM_INGREDIENTS
-        self.observation_size_tool = _OBSERVATION_SIZE_TOOL
-        self.num_step = 0
-        self._previous_tool_pose_euler = np.zeros(6, dtype=float)
-        self._previous_sec: Optional[float] = None
-
         self._init_tool_pose = np.array(
-            [0.374, -0.015, -0.139, -0.184, 0.936, -0.279, 0.114]
+            [0.323, 0.0, -0.087, 0.0, 0.961, 0.0, 0.277]
         )  # TODO(sara): get pose from somewhere
 
         self.stir = Stir(self._init_tool_pose)
+        self._num_ingredients = self.stir.num_ingredients
 
         StirEnv.__init__(self, self._init_tool_pose)
 
@@ -82,6 +68,13 @@ class StirGazeboEnv(gym.Env, StirEnv):
             self._step = self.step_velocity_controller
         else:
             raise ValueError("controller not selected")
+
+        self._total_velocity_reward = 0.0
+        self.num_step = 0
+        self._previous_angle = 0.0  # TODO(sara): generalize it
+        self._every_other_ingredients = False
+        self._previous_tool_pose_euler = np.zeros(6, dtype=float)
+        self._previous_sec: Optional[float] = None
 
     def step_position_controller(self, action: np.ndarray) -> None:
         q = tf.transformations.quaternion_from_euler(*action[3:])
@@ -125,29 +118,35 @@ class StirGazeboEnv(gym.Env, StirEnv):
                     [
                         radius * np.cos(angle),
                         radius * np.sin(angle),
-                        _INGREDIENTS_POSITION_Z
+                        (self._init_tool_pose[2])
                         * np.ones(self._num_ingredients),
                     ]
                 ).transpose()
+
+                init_ingredient_poses[:, 0] += self._init_tool_pose[0]
+                init_ingredient_poses[:, 1] += self._init_tool_pose[1]
 
                 self.stir.reset_ingredient(init_ingredient_poses)
                 # TODO(sara): self._observation_ingredient_pose[:3]?
                 if (
                     get_distance_between_two_centroids(
-                        self.stir.get_ingredient_poses()
-                        .reshape(-1, 7)[:, self._observation_ingredient_pose]
-                        .flatten()
+                        self.stir.get_ingredient_poses().reshape(-1, 7)[
+                            :, : self._dimension_ingredient_distance
+                        ],
+                        self._every_other_ingredients,
                     )
                     > _THRESHOLD_DISTANCE * 2.0
                 ):
                     break
-        else:
-            observation = self._get_observation()
 
+        self._total_velocity_reward = 0.0
         self.num_step = 0
-        self._previous_sec = None
+        self._previous_angle = 0.0  # TODO(sara): generalize it
+        self._every_other_ingredients = False
+        self._previous_tool_pose_euler = np.zeros(6, dtype=float)
+        self._previous_sec: Optional[float] = None
 
-        return observation, {}
+        return self._get_observation(), {}
 
     def _get_observation(self) -> np.ndarray:
         tool_pose, sec = self.stir.get_tool_pose()
@@ -185,14 +184,21 @@ class StirGazeboEnv(gym.Env, StirEnv):
     def _check_collision_with_bowl(
         self, end_pose: np.ndarray, base_pose: np.ndarray
     ) -> bool:
+        # TODO(sara): do the test
+        bowl_top_position_z = (
+            self._init_tool_pose[2] + _BOWL_HEIGHT - _BOWL_BOTTOM_TO_INIT_Z
+        )
+        bowl_bottom_position_z = (
+            self._init_tool_pose[2] - _BOWL_BOTTOM_TO_INIT_Z
+        )
 
         # tool end condition
         a = (_BOWL_RADIUS_TOP - _BOWL_RADIUS_BOTTOM) / (
-            _BOWL_TOP_POSITION_Z - _BOWL_BOTTOM_POSITION_Z
+            bowl_top_position_z - bowl_bottom_position_z
         )
         if np.hypot(
             *(end_pose[:2] - self._init_tool_pose[:2])
-        ) > _BOWL_RADIUS_BOTTOM + a * (end_pose[2] - _BOWL_BOTTOM_POSITION_Z):
+        ) > _BOWL_RADIUS_BOTTOM + a * (end_pose[2] - bowl_bottom_position_z):
             return True
 
         # piercing condition
@@ -224,6 +230,4 @@ class StirGazeboEnv(gym.Env, StirEnv):
         distance_xy = np.hypot(*(end_pose[:2] - base_pose[:2]))
         a_wz1 = (base_pose[2] - end_pose[2]) / distance_xy
         b_wz1 = end_pose[2]
-        return (
-            _BOWL_TOP_POSITION_Z > a_wz1 * distance_end_to_bowl_top_xy + b_wz1
-        )
+        return bowl_top_position_z > a_wz1 * distance_end_to_bowl_top_xy + b_wz1

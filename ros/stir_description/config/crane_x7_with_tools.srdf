@@ -39,14 +39,23 @@
         <joint name="crane_x7_upper_arm_revolute_part_twist_joint" value="0" />
         <joint name="crane_x7_wrist_joint" value="0" />
     </group_state>
+    <group_state name="pre_init" group="arm">
+        <joint name="crane_x7_lower_arm_fixed_part_joint" value="0.0" />
+        <joint name="crane_x7_lower_arm_revolute_part_joint" value="-1.006" />
+        <joint name="crane_x7_shoulder_fixed_part_pan_joint" value="0.0" />
+        <joint name="crane_x7_shoulder_revolute_part_tilt_joint" value="0.72420266" />
+        <joint name="crane_x7_upper_arm_revolute_part_rotate_joint" value="-2.29745" />
+        <joint name="crane_x7_upper_arm_revolute_part_twist_joint" value="0.0" />
+        <joint name="crane_x7_wrist_joint" value="0.0" />
+    </group_state>
     <group_state name="init" group="arm">
-        <joint name="crane_x7_lower_arm_fixed_part_joint" value="0.0872665" />
-        <joint name="crane_x7_lower_arm_revolute_part_joint" value="-0.959931" />
-        <joint name="crane_x7_shoulder_fixed_part_pan_joint" value="1.48353" />
-        <joint name="crane_x7_shoulder_revolute_part_tilt_joint" value="-0.698132" />
-        <joint name="crane_x7_upper_arm_revolute_part_rotate_joint" value="-1.74533" />
-        <joint name="crane_x7_upper_arm_revolute_part_twist_joint" value="-1.22173" />
-        <joint name="crane_x7_wrist_joint" value="0" />
+        <joint name="crane_x7_lower_arm_fixed_part_joint" value="0.0" />
+        <joint name="crane_x7_lower_arm_revolute_part_joint" value="-0.401593" />
+        <joint name="crane_x7_shoulder_fixed_part_pan_joint" value="0.0" />
+        <joint name="crane_x7_shoulder_revolute_part_tilt_joint" value="0.265457775" />
+        <joint name="crane_x7_upper_arm_revolute_part_rotate_joint" value="-2.4430836" />
+        <joint name="crane_x7_upper_arm_revolute_part_twist_joint" value="0.0" />
+        <joint name="crane_x7_wrist_joint" value="0.0" />
     </group_state>
     <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
     <end_effector name="end_effector" parent_link="crane_x7_gripper_base_link" group="gripper" />

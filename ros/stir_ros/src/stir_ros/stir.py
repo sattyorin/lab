@@ -12,7 +12,7 @@ from controller_manager_msgs.srv import (
     SwitchController,
     SwitchControllerRequest,
 )
-from gazebo_msgs.msg import LinkStates
+from gazebo_msgs.msg import LinkStates, ModelStates
 from gazebo_msgs.srv import SetLinkState, SetLinkStateRequest
 from geometry_msgs.msg import Pose, PoseStamped, TransformStamped, TwistStamped
 from moveit_msgs.msg import MoveGroupActionResult
@@ -33,7 +33,6 @@ POSITION_CONTROLLER_STIR_ROS_NODE = "pose_tracking_node"
 VELOCITY_CONTROLLER_STIR_ROS_NODE = "bringup_servo_node"
 SWITCH_CONTROLLER = "/crane_x7/controller_manager/switch_controller"
 LIST_CONTROLLERS = "/crane_x7/controller_manager/list_controllers"
-NUM_INGREDIENTS = 4  # TODO(sara):get from urdf
 NUM_INGREDIENT_POSES = 7  # TODO(sara):get from urdf
 INGREDIENT = "ingredient"
 INGREDIENTS_MODEL = "ingredient_cube"
@@ -67,8 +66,16 @@ class Stir:
         else:
             rospy.logerr("invalid controller")
 
+        model_states: ModelStates = rospy.wait_for_message(
+            "/gazebo/model_states", ModelStates, timeout=2
+        )
+        self.num_ingredients = 0
+        for name in model_states.name:
+            if "ingredient" in name:
+                self.num_ingredients += 1
+
         self._ingredient_buffer = np.zeros(
-            (NUM_INGREDIENTS * NUM_INGREDIENT_POSES,)
+            (self.num_ingredients * NUM_INGREDIENT_POSES,)
         )
         self.latest_joint_state = JointState()
 
@@ -79,9 +86,9 @@ class Stir:
         for i, name in enumerate(topic.name):
             if INGREDIENTS_MODEL in name:
                 self._obserbation_index = np.append(self._obserbation_index, i)
-        if self._obserbation_index.shape != (NUM_INGREDIENTS,):
+        if self._obserbation_index.shape != (self.num_ingredients,):
             rospy.logerr(
-                f"NUM_INGREDIENTS(: {NUM_INGREDIENTS}) and \
+                f"NUM_INGREDIENTS(: {self.num_ingredients}) and \
                 number of ingredients in link_states(: {i}) must be equal"
             )
 
@@ -92,7 +99,7 @@ class Stir:
             queue_size=1,
         )
 
-        self._link_states_subscriber = rospy.Subscriber(
+        self._joint_states_subscriber = rospy.Subscriber(
             JOINT_STATES,
             JointState,
             self._joint_states_callback,
@@ -185,7 +192,7 @@ class Stir:
         print("========================================")
 
         rospy.loginfo("go init pose")
-        self._arm.set_named_target("home")
+        self._arm.set_named_target("pre_init")
         self._arm.go(wait=True)
         self._arm.set_named_target("init")
         self._arm.go(wait=True)
@@ -221,19 +228,19 @@ class Stir:
 
     def _link_states_callback(self, states: LinkStates) -> None:
         for i, obs_i in enumerate(self._obserbation_index):
-            self._ingredient_buffer[i * 3] = states.pose[obs_i].position.x
-            self._ingredient_buffer[i * 3 + 1] = states.pose[obs_i].position.y
-            self._ingredient_buffer[i * 3 + 2] = states.pose[obs_i].position.z
-            self._ingredient_buffer[i * 3 + 3] = states.pose[
+            self._ingredient_buffer[i * 7] = states.pose[obs_i].position.x
+            self._ingredient_buffer[i * 7 + 1] = states.pose[obs_i].position.y
+            self._ingredient_buffer[i * 7 + 2] = states.pose[obs_i].position.z
+            self._ingredient_buffer[i * 7 + 3] = states.pose[
                 obs_i
             ].orientation.x
-            self._ingredient_buffer[i * 3 + 4] = states.pose[
+            self._ingredient_buffer[i * 7 + 4] = states.pose[
                 obs_i
             ].orientation.y
-            self._ingredient_buffer[i * 3 + 5] = states.pose[
+            self._ingredient_buffer[i * 7 + 5] = states.pose[
                 obs_i
             ].orientation.z
-            self._ingredient_buffer[i * 3 + 6] = states.pose[
+            self._ingredient_buffer[i * 7 + 6] = states.pose[
                 obs_i
             ].orientation.w
 
@@ -341,14 +348,14 @@ class Stir:
         if self._get_current_controller() != DEFAULT_CONTROLLER:
             self._switch_controller(DEFAULT_CONTROLLER, self._controller)
 
-        # self._arm.set_named_target("home")
-        # self._arm.go(wait=True)
+        self._arm.set_named_target("pre_init")
+        self._arm.go(wait=True)
         self._arm.set_named_target("init")
         self._arm.go(wait=True)
-        if self._moveit_error:
+        while self._moveit_error:
             self._reset_world_proxy()
             # TODO(sara): set_link_state ?
-            self._arm.set_named_target("home")
+            self._arm.set_named_target("pre_init")
             self._arm.go(wait=True)
             self._arm.set_named_target("init")
             self._arm.go(wait=True)

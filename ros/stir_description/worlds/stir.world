@@ -19,7 +19,7 @@
     <model name="cooking_bowl">
       <include>
         <uri>model://cooking_bowl</uri>
-        <pose>0.374 0 -0.179 0 0 0</pose>
+        <pose>0.323 0 -0.106 0 0 0</pose>
         <static>true</static>
       </include>
     </model>
@@ -27,28 +27,28 @@
     <model name="ingredient0">
       <include>
         <uri>model://ingredient_cube</uri>
-        <pose>2.01 0.01 0.05 0 0 0</pose>
+        <pose>0.324 0.01 0.05 0 0 0</pose>
       </include>
     </model>
 
     <model name="ingredient1">
       <include>
         <uri>model://ingredient_cube</uri>
-        <pose>2.01 -0.01 0.05 0 0 0</pose>
+        <pose>0.324 -0.01 0.05 0 0 0</pose>
       </include>
     </model>
 
     <model name="ingredient2">
       <include>
         <uri>model://ingredient_cube</uri>
-        <pose>1.99 0.01 0.05 0 0 0</pose>
+        <pose>0.322 0.01 0.05 0 0 0</pose>
       </include>
     </model>
 
     <model name="ingredient3">
       <include>
         <uri>model://ingredient_cube</uri>
-        <pose>-1.99 -0.01 0.05 0 0 0</pose>
+        <pose>0.322 -0.01 0.05 0 0 0</pose>
       </include>
     </model>
 

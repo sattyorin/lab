@@ -60,6 +60,7 @@ class IStirEnv:
 
         self._length_tool_pose = sum(self._observation_tool_pose)
         self._length_tool_velocity = sum(self._observation_tool_velocity)
+        self._length_ingredient_pose = sum(self._observation_ingredient_pose)
 
         self._dimension_ingredient_distance: Optional[int] = None
         if not (

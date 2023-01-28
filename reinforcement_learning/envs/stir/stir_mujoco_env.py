@@ -1,23 +1,25 @@
 import os
 import random
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 import mujoco
 import numpy as np
 
 # TODO(sara): add switcher
-from envs.stir.stir_env0 import StirEnv0 as StirEnv
+from envs.stir.stir_env_xyz_move_ingredients import (
+    StirEnvXYZMoveIngredients as StirEnv,
+)
 from envs.stir.stir_util import get_distance_between_two_centroids
 from gym import utils
 from gym.envs.mujoco import MujocoEnv
 
 _FRAME_SKIP = 40
 _TIME_STEP = 0.0025
-_ENV = "stir-v0"
+_ENV = "stir-v2"  # xml
 _TOOL_POSE_INDEX = 0
 _INGREDIENTS_POSE_INDEX = 7
-_RESET_INGREDIENTS_RADIUS_MIN = 0.04
-_RESET_INGREDIENTS_RADIUS_MAX = 0.06
+_RESET_INGREDIENTS_RADIUS_MIN = 0.01
+_RESET_INGREDIENTS_RADIUS_MAX = 0.03
 _TOOL_GEOM_NUM = 2  # TODO(sara): get num from model
 _BOWL_GEOM_NUM = 16  # TODO(sara): get num from model
 _THRESHOLD_RESET_DISTANCE = 0.02
@@ -93,6 +95,7 @@ class StirMujocoEnv(MujocoEnv, utils.EzPickle, StirEnv):
         self.num_step = 0
         self.previous_angle = 0.0  # TODO(sara): generalize it
         self._every_other_ingredients = False
+        self._previous_ingredient_positions: Optional[np.ndarray] = None
 
     def _get_ids(self):
         # self._ingredient_ids = np.array(
@@ -228,6 +231,7 @@ class StirMujocoEnv(MujocoEnv, utils.EzPickle, StirEnv):
         self.num_step = 0
         self._previous_angle = 0.0  # TODO(sara): generalize it
         self._every_other_ingredients = False
+        self._previous_ingredient_positions: Optional[np.ndarray] = None
 
         return self._get_observation()
 
@@ -236,7 +240,8 @@ class StirMujocoEnv(MujocoEnv, utils.EzPickle, StirEnv):
             self._observation_tool_pose
         ]
         # wxyz -> xyzw
-        tool_pose = np.append(np.delete(tool_pose, 3), tool_pose[3])
+        if tool_pose.shape == (7,):
+            tool_pose = np.append(np.delete(tool_pose, 3), tool_pose[3])
         tool_velocity = self.data.qvel[_TOOL_POSE_INDEX : _TOOL_POSE_INDEX + 6][
             self._observation_tool_velocity
         ]

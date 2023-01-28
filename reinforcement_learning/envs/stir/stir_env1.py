@@ -8,6 +8,8 @@ from gym.spaces import Box
 _TARGET_VELOCITY = 0.08
 _THRESHOLD_DISTANCE = 0.01
 
+# rotation radius and θ
+
 
 class StirEnv1(IStirEnv):
     def __init__(self, init_tool_pose: np.ndarray):
@@ -74,7 +76,7 @@ class StirEnv1(IStirEnv):
         )
         self._total_velocity_reward += reward_small_velocity
 
-        distance = stir_util.get_distance_between_two_centroid(
+        distance = stir_util.get_distance_between_two_centroids(
             ingredient_positions.reshape(
                 -1, self._dimension_ingredient_distance
             ),

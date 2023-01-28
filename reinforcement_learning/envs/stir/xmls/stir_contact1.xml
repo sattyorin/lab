@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<mujoco>
+  <contact>
+    <pair name="contact_pair0" geom1="floor" geom2="geom_ingredient0" friction="1 1 0.005 0.1 0.1" />
+  </contact>
+</mujoco>

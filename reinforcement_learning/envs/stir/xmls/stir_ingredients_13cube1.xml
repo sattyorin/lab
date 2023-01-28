@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<mujoco>
+  <body name="ingredient0" pos="0.01 0.02 0.01">
+    <freejoint name="joint_ingredient0" />
+    <geom name="geom_ingredient0" type="box" size="0.0065 0.0065 0.0065" rgba="1.0 0 0 0.8" />
+  </body>
+</mujoco>

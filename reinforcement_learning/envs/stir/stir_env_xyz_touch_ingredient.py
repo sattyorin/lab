@@ -78,10 +78,10 @@ class StirEnvXYZTouchIngredients(IStirEnv):
 
     def _get_reward(self, observation: np.ndarray) -> Tuple[float, bool]:
         tool_pose = observation[: self._length_tool_pose]
-        tool_velocity = observation[
-            self._length_tool_pose : self._length_tool_pose
-            + self._length_tool_velocity
-        ]
+        # tool_velocity = observation[
+        #     self._length_tool_pose : self._length_tool_pose
+        #     + self._length_tool_velocity
+        # ]
         ingredient_positions = observation[
             self._length_tool_pose + self._length_tool_velocity :
         ]
@@ -104,15 +104,15 @@ class StirEnvXYZTouchIngredients(IStirEnv):
             )
             > 0.0000001
         ):
-            return 100, True
+            return 500, True
 
-        self._total_velocity_reward += stir_util.get_reward_small_velocity(
-            np.linalg.norm(tool_velocity[:3]), _TARGET_VELOCITY
-        )
+        # self._total_velocity_reward += stir_util.get_reward_small_velocity(
+        #     np.linalg.norm(tool_velocity[:3]), _TARGET_VELOCITY
+        # )
 
-        if self._total_velocity_reward / (self.num_step + 1) < 0.5:
-            print(self._total_velocity_reward)
-            return reward, True
+        # if self._total_velocity_reward / (self.num_step + 1) < 0.5:
+        #     print(self._total_velocity_reward)
+        #     return reward, True
 
         self._previous_ingredient_positions = ingredient_positions
         return reward, False

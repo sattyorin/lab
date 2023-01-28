@@ -93,11 +93,8 @@ class StirEnvXYZMoveIngredients(IStirEnv):
                         np.linalg.norm(
                             ingredient_positions.reshape(
                                 -1, self._length_ingredient_pose
-                            )[:, : self._dimension_ingredient_distance],
-                            axis=1,
-                        )
-                        - np.linalg.norm(
-                            self._previous_ingredient_positions.reshape(
+                            )[:, : self._dimension_ingredient_distance]
+                            - self._previous_ingredient_positions.reshape(
                                 -1, self._length_ingredient_pose
                             )[:, : self._dimension_ingredient_distance],
                             axis=1,

@@ -89,16 +89,14 @@ class StirEnvXYZMoveIngredients(IStirEnv):
         if self._previous_ingredient_positions is not None:
             reward = (
                 sum(
-                    abs(
-                        np.linalg.norm(
-                            ingredient_positions.reshape(
-                                -1, self._length_ingredient_pose
-                            )[:, : self._dimension_ingredient_distance]
-                            - self._previous_ingredient_positions.reshape(
-                                -1, self._length_ingredient_pose
-                            )[:, : self._dimension_ingredient_distance],
-                            axis=1,
-                        )
+                    np.linalg.norm(
+                        ingredient_positions.reshape(
+                            -1, self._length_ingredient_pose
+                        )[:, : self._dimension_ingredient_distance]
+                        - self._previous_ingredient_positions.reshape(
+                            -1, self._length_ingredient_pose
+                        )[:, : self._dimension_ingredient_distance],
+                        axis=1,
                     )
                 )
                 * 1000

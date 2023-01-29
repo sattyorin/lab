@@ -11,7 +11,7 @@ _TARGET_VELOCITY = 0.02
 _THRESHOLD_DISTANCE = 0.01
 
 
-class StirEnvXYZMoveIngredients(IStirEnv):
+class StirEnvXYZMoveIngredient(IStirEnv):
     def __init__(self, init_tool_pose: np.ndarray):
 
         is_position_controller = True

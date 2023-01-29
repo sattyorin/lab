@@ -7,7 +7,7 @@ import yaml
 from envs.stir.i_stir_env import IStirEnv
 from gym.spaces import Box
 
-_TARGET_VELOCITY = 0.08
+_TARGET_VELOCITY = 0.02
 _THRESHOLD_DISTANCE = 0.01
 
 
@@ -29,7 +29,7 @@ class StirEnvXYZMoveIngredients(IStirEnv):
         )
 
         action_low = np.array([-1.0, -1.0, 0.0])
-        action_high = np.array([1.0, 1.0, 0.013])  # ingredient_height
+        action_high = np.array([1.0, 1.0, 0.013 + 0.001])  # ingredient_height
 
         action_space = Box(
             low=action_low,
@@ -78,10 +78,10 @@ class StirEnvXYZMoveIngredients(IStirEnv):
 
     def _get_reward(self, observation: np.ndarray) -> Tuple[float, bool]:
         # tool_pose = observation[:self._length_tool_pose]
-        # tool_velocity = observation[
-        #     self._length_tool_pose : self._length_tool_pose
-        #     + self._length_tool_velocity
-        # ]
+        tool_velocity = observation[
+            self._length_tool_pose : self._length_tool_pose
+            + self._length_tool_velocity
+        ]
         ingredient_positions = observation[
             self._length_tool_pose + self._length_tool_velocity :
         ]
@@ -103,6 +103,14 @@ class StirEnvXYZMoveIngredients(IStirEnv):
             )
         else:
             reward = 0.0
+
+        self._total_velocity_reward += stir_util.get_reward_small_velocity(
+            np.linalg.norm(tool_velocity[:3]), _TARGET_VELOCITY
+        )
+
+        if self._total_velocity_reward / (self.num_step + 1) < 0.5:
+            print(self._total_velocity_reward)
+            return -100.0, True
 
         self._previous_ingredient_positions = ingredient_positions
         return reward, False

@@ -28,8 +28,10 @@ class StirEnvXYZMoveTools(IStirEnv):
             [True, True, False, False, False, False, False]
         )
 
-        action_low = np.array([-1.0, -1.0, 0.0])
-        action_high = np.array([1.0, 1.0, 0.013])  # ingredient_height
+        # action_low = np.array([-1.0, -1.0, 0.0])
+        # action_high = np.array([1.0, 1.0, 0.013])  # ingredient_height
+        action_low = np.array([-0.4, -0.4, 0.0])
+        action_high = np.array([0.4, 0.4, 0.013])  # ingredient_height
 
         action_space = Box(
             low=action_low,
@@ -62,6 +64,7 @@ class StirEnvXYZMoveTools(IStirEnv):
                 self._bowl[key] -= tools_radius
 
     def _get_controller_input(self, action: np.ndarray) -> np.ndarray:
+        return action
         a = (
             self._bowl["bowl_radius_top"] - self._bowl["bowl_radius_bottom"]
         ) / self._bowl["bowl_height"] * action[2] + self._bowl[

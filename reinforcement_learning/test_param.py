@@ -1,8 +1,7 @@
+import envs
 import gym
 import matplotlib.pyplot as plt
 import numpy as np
-
-import envs
 
 if __name__ == "__main__":
     env = gym.make("stir-v0", render_mode="human")

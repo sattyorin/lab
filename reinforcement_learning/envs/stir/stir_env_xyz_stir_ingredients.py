@@ -92,11 +92,13 @@ class StirEnvXYZStirIngredients(IStirEnv):
             ),
             self._every_other_ingredients,
         )
-        if distance < self._minimum_ingredient_distance:
-            self._minimum_ingredient_distance = distance
-            reward = stir_util.get_reward_stir(distance, stir_coefficient=30)
-        else:
-            reward = 0.0
+        reward = stir_util.get_reward_stir(distance, stir_coefficient=30)
+
+        # if distance < self._minimum_ingredient_distance:
+        #     self._minimum_ingredient_distance = distance
+        #     reward = stir_util.get_reward_stir(distance, stir_coefficient=30)
+        # else:
+        #     reward = 0.0
 
         self._total_velocity_reward += stir_util.get_reward_small_velocity(
             np.linalg.norm(tool_velocity[:3]), _TARGET_VELOCITY

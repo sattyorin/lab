@@ -15,7 +15,7 @@ from gym.envs.mujoco import MujocoEnv
 
 _FRAME_SKIP = 40
 _TIME_STEP = 0.0025
-_ENV = "stir-v2"  # xml
+_ENV = "stir-v5"  # xml
 _TOOL_POSE_INDEX = 0
 _INGREDIENTS_POSE_INDEX = 7
 _RESET_INGREDIENTS_RADIUS_MIN = 0.01

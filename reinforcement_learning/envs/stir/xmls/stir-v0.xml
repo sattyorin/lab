@@ -8,5 +8,4 @@
   </worldbody>
   <include file="stir_contact4.xml" />
   <include file="stir_actuator_velocity_all.xml" />
-  <!-- <include file="stir_actuator_position_all.xml" /> -->
 </mujoco>

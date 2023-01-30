@@ -92,7 +92,6 @@ class StirEnvXYZMoveTools(IStirEnv):
         self._total_velocity_reward += reward
 
         if self._total_velocity_reward / (self.num_step + 1) < 0.5:
-            print(self._total_velocity_reward)
             return reward, True
 
         return reward, False

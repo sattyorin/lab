@@ -61,3 +61,17 @@ def get_penalty_small_control(action: np.ndarray) -> float:
 
 def get_distance_score(distance: float) -> float:
     return (1 + np.tanh((-abs(distance) * 200 + 5) / 2)) / 2
+
+
+def get_reward_ingredient_movement(
+    ingredient_position: np.ndarray, previous_ingredient_position: np.ndarray
+) -> float:
+    return (
+        sum(
+            np.linalg.norm(
+                ingredient_position - previous_ingredient_position,
+                axis=1,
+            )
+        )
+        * 1000
+    )

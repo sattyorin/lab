@@ -6,8 +6,8 @@ import mujoco
 import numpy as np
 
 # TODO(sara): add switcher
-from envs.stir.stir_env_xyz_move_ingredients import (
-    StirEnvXYZMoveIngredients as StirEnv,
+from envs.stir.stir_env_xyz_stir_ingredients import (
+    StirEnvXYZStirIngredients as StirEnv,
 )
 from envs.stir.stir_util import get_distance_between_two_centroids
 from gym import utils
@@ -91,10 +91,15 @@ class StirMujocoEnv(MujocoEnv, utils.EzPickle, StirEnv):
         )
         self.action_space = action_space
 
+        self._every_other_ingredients = False
+        self._minimum_ingredient_distance = get_distance_between_two_centroids(
+            self.data.qpos[_INGREDIENTS_POSE_INDEX:].reshape(-1, 7)[:, :2],
+            self._every_other_ingredients,
+        )
         self._total_velocity_reward = 0.0
+        self._total_ingredient_movement_reward = 0.0
         self.num_step = 0
         self.previous_angle = 0.0  # TODO(sara): generalize it
-        self._every_other_ingredients = False
         self._previous_ingredient_positions: Optional[np.ndarray] = None
 
     def _get_ids(self):
@@ -196,13 +201,16 @@ class StirMujocoEnv(MujocoEnv, utils.EzPickle, StirEnv):
                         angle
                     )
                 mujoco.mj_forward(self.model, self.data)
-                if (
+                self._minimum_ingredient_distance = (
                     get_distance_between_two_centroids(
                         self.data.qpos[_INGREDIENTS_POSE_INDEX:].reshape(-1, 7)[
                             :, :2
                         ],
                         self._every_other_ingredients,
                     )
+                )
+                if (
+                    self._minimum_ingredient_distance
                     > _THRESHOLD_RESET_DISTANCE
                 ):
                     break

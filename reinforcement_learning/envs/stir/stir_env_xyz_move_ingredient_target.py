@@ -11,7 +11,7 @@ _TARGET_VELOCITY = 0.02
 _THRESHOLD_DISTANCE = 0.01
 
 
-class StirEnvXYZTouchIngredient(IStirEnv):
+class StirEnvXYZMoveIngredientTarget(IStirEnv):
     def __init__(self, init_tool_pose: np.ndarray):
 
         is_position_controller = True
@@ -29,7 +29,7 @@ class StirEnvXYZTouchIngredient(IStirEnv):
         )
 
         action_low = np.array([-1.0, -1.0, 0.0])
-        action_high = np.array([1.0, 1.0, 0.014])  # ingredient_height
+        action_high = np.array([1.0, 1.0, 0.013])  # ingredient_height
 
         action_space = Box(
             low=action_low,
@@ -77,45 +77,47 @@ class StirEnvXYZTouchIngredient(IStirEnv):
         )  # for mujoco?
 
     def _get_reward(self, observation: np.ndarray) -> Tuple[float, bool]:
-        tool_pose = observation[: self._length_tool_pose]
-        # tool_velocity = observation[
-        #     self._length_tool_pose : self._length_tool_pose
-        #     + self._length_tool_velocity
-        # ]
+        # tool_pose = observation[: self._length_tool_pose]
+        tool_velocity = observation[
+            self._length_tool_pose : self._length_tool_pose
+            + self._length_tool_velocity
+        ]
         ingredient_positions = observation[
             self._length_tool_pose + self._length_tool_velocity :
         ]
 
-        # if self._previous_ingredient_positions is not None:
-        #     reward = np.exp(
-        #         -np.linalg.norm((ingredient_positions[:2] - tool_pose[:2]) * 20)
-        #     )
+        # target position is [0.0, 0.0]
+        reward = (
+            np.linalg.norm(
+                ingredient_positions[: self._dimension_ingredient_distance]
+            )
+            * 1000
+        )
 
-        # else:
-        #     reward = 0.0
-
-        reward = 0.0
+        if self._previous_ingredient_positions is not None:
+            self._total_ingredient_movement_reward += (
+                np.linalg.norm(
+                    ingredient_positions[: self._dimension_ingredient_distance]
+                    - self._previous_ingredient_positions[
+                        : self._dimension_ingredient_distance
+                    ]
+                )
+                * 1000
+            )
 
         if (
-            self._previous_ingredient_positions is not None
-            and np.linalg.norm(
-                ingredient_positions[: self._dimension_ingredient_distance]
-                - self._previous_ingredient_positions[
-                    : self._dimension_ingredient_distance
-                ]
-            )
-            > 0.0000001
+            self.num_step > 100
+            and self._total_ingredient_movement_reward / (self.num_step + 1)
+            < 0.3
         ):
-            return 500 - self.num_step * 0.5, True
-            return 500, True
+            return -100.0, True
 
-        # self._total_velocity_reward += stir_util.get_reward_small_velocity(
-        #     np.linalg.norm(tool_velocity[:3]), _TARGET_VELOCITY
-        # )
+        self._total_velocity_reward += stir_util.get_reward_small_velocity(
+            np.linalg.norm(tool_velocity[:3]), _TARGET_VELOCITY
+        )
 
-        # if self._total_velocity_reward / (self.num_step + 1) < 0.5:
-        #     print(self._total_velocity_reward)
-        #     return reward, True
+        if self._total_velocity_reward / (self.num_step + 1) < 0.5:
+            return -100.0, True
 
         self._previous_ingredient_positions = ingredient_positions
         return reward, False

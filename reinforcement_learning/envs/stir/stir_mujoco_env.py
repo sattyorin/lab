@@ -6,8 +6,8 @@ import mujoco
 import numpy as np
 
 # TODO(sara): add switcher
-from envs.stir.stir_env_xyz_stir_ingredients import (
-    StirEnvXYZStirIngredients as StirEnv,
+from envs.stir.stir_env_xyz_move_ingredient_target import (
+    StirEnvXYZMoveIngredientTarget as StirEnv,
 )
 from envs.stir.stir_util import get_distance_between_two_centroids
 from gym import utils
@@ -15,7 +15,7 @@ from gym.envs.mujoco import MujocoEnv
 
 _FRAME_SKIP = 40
 _TIME_STEP = 0.0025
-_ENV = "stir-v5"  # xml
+_ENV = "stir-ingredient1_toolxyz"  # xml
 _TOOL_POSE_INDEX = 0
 _INGREDIENTS_POSE_INDEX = 7
 _RESET_INGREDIENTS_RADIUS_MIN = 0.01

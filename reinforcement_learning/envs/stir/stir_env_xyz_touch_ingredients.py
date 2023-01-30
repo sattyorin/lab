@@ -11,7 +11,7 @@ _TARGET_VELOCITY = 0.02
 _THRESHOLD_DISTANCE = 0.01
 
 
-class StirEnvXYZTouchIngredient(IStirEnv):
+class StirEnvXYZTouchIngredients(IStirEnv):
     def __init__(self, init_tool_pose: np.ndarray):
 
         is_position_controller = True
@@ -29,7 +29,7 @@ class StirEnvXYZTouchIngredient(IStirEnv):
         )
 
         action_low = np.array([-1.0, -1.0, 0.0])
-        action_high = np.array([1.0, 1.0, 0.014])  # ingredient_height
+        action_high = np.array([1.0, 1.0, 0.013])  # ingredient_height
 
         action_space = Box(
             low=action_low,
@@ -86,15 +86,13 @@ class StirEnvXYZTouchIngredient(IStirEnv):
             self._length_tool_pose + self._length_tool_velocity :
         ]
 
-        # if self._previous_ingredient_positions is not None:
-        #     reward = np.exp(
-        #         -np.linalg.norm((ingredient_positions[:2] - tool_pose[:2]) * 20)
-        #     )
+        if self._previous_ingredient_positions is not None:
+            reward = np.exp(
+                -np.linalg.norm((ingredient_positions[:2] - tool_pose[:2]) * 20)
+            )
 
-        # else:
-        #     reward = 0.0
-
-        reward = 0.0
+        else:
+            reward = 0.0
 
         if (
             self._previous_ingredient_positions is not None
@@ -106,7 +104,6 @@ class StirEnvXYZTouchIngredient(IStirEnv):
             )
             > 0.0000001
         ):
-            return 500 - self.num_step * 0.5, True
             return 500, True
 
         # self._total_velocity_reward += stir_util.get_reward_small_velocity(

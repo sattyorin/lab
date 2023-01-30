@@ -6,6 +6,6 @@
     <include file="stir_bowl.xml" />
     <include file="stir_ingredients_13cube4.xml" />
   </worldbody>
-  <include file="stir_contact.xml" />
+  <include file="stir_contact4.xml" />
   <include file="stir_actuator_position_xy.xml" />
 </mujoco>

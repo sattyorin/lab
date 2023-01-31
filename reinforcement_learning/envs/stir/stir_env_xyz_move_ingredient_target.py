@@ -87,12 +87,9 @@ class StirEnvXYZMoveIngredientTarget(IStirEnv):
         ]
 
         # target position is [0.0, 0.0]
-        reward = (
-            np.linalg.norm(
-                ingredient_positions[: self._dimension_ingredient_distance]
-            )
-            * 1000
-        )
+        reward = np.exp(-np.linalg.norm(ingredient_positions[:2]) * 30)
+        if reward > 0.9:
+            return 1000, True
 
         if self._previous_ingredient_positions is not None:
             self._total_ingredient_movement_reward += (
@@ -110,14 +107,14 @@ class StirEnvXYZMoveIngredientTarget(IStirEnv):
             and self._total_ingredient_movement_reward / (self.num_step + 1)
             < 0.3
         ):
-            return -100.0, True
+            return -1000.0, True
 
         self._total_velocity_reward += stir_util.get_reward_small_velocity(
             np.linalg.norm(tool_velocity[:3]), _TARGET_VELOCITY
         )
 
         if self._total_velocity_reward / (self.num_step + 1) < 0.5:
-            return -100.0, True
+            return -1000.0, True
 
         self._previous_ingredient_positions = ingredient_positions
         return reward, False

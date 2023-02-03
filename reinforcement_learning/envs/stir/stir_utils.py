@@ -2,7 +2,7 @@ from typing import Tuple
 
 import numpy as np
 import tf
-from scipy.spatial import Delaunay, delaunay_plot_2d
+from scipy.spatial import Delaunay
 
 
 def get_euler_pose_from_quaternion(pose: np.ndarray) -> np.ndarray:

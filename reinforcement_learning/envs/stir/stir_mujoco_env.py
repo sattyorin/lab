@@ -1,6 +1,6 @@
 import os
 import random
-from typing import Dict, Optional, Tuple
+from typing import Dict, Tuple
 
 import envs.stir.mujoco_model_utils as mujoco_model_utils
 import mujoco
@@ -8,7 +8,6 @@ import numpy as np
 import yaml
 from envs.stir.i_stir_env import IStirEnv
 from envs.stir.stir_env_specialization import get_specialization
-from envs.stir.stir_utils import get_distance_between_two_centroids
 from gym import utils
 from gym.envs.mujoco import MujocoEnv
 
@@ -35,7 +34,7 @@ class StirMujocoEnv(MujocoEnv, utils.EzPickle):
         "render_fps": np.round(1.0 / (_TIME_STEP * _FRAME_SKIP)),
     }
 
-    def __init__(self, xml, specialization, **kwargs) -> None:
+    def __init__(self, specialization, xml, **kwargs) -> None:
 
         np.random.seed(1)
         random.seed(1)
@@ -122,15 +121,15 @@ class StirMujocoEnv(MujocoEnv, utils.EzPickle):
 
         # for _ in range(self.frame_skip):
         #     self.data.qpos[_TOOL_POSE_INDEX : _TOOL_POSE_INDEX + _TOOL_POSE_DIMENSION] *= (
-        #         self._stir_env._observation_tool_pose
-        #         + np.logical_not(self._stir_env._observation_tool_pose)
+        #         self._stir_env.observation_tool_pose
+        #         + np.logical_not(self._stir_env.observation_tool_pose)
         #         * self._init_tool_pose
         #     )
         #     mujoco.mj_step(self.model, self.data, nstep=1)
 
         # self.data.qpos[_TOOL_POSE_INDEX : _TOOL_POSE_INDEX + _TOOL_POSE_DIMENSION] *= (
-        #     self._stir_env._observation_tool_pose
-        #     + np.logical_not(self._stir_env._observation_tool_pose) * self._init_tool_pose
+        #     self._stir_env.observation_tool_pose
+        #     + np.logical_not(self._stir_env.observation_tool_pose) * self._init_tool_pose
         # )
 
         mujoco.mj_step(self.model, self.data, nstep=self.frame_skip)
@@ -179,17 +178,17 @@ class StirMujocoEnv(MujocoEnv, utils.EzPickle):
 
         self.data.qpos[
             _TOOL_POSE_INDEX : _TOOL_POSE_INDEX + _TOOL_POSE_DIMENSION
-        ][self._stir_env._observation_tool_pose] += self.np_random.uniform(
+        ][self._stir_env.observation_tool_pose] += self.np_random.uniform(
             low=-_RESET_NOISE_SCALE,
             high=_RESET_NOISE_SCALE,
-            size=sum(self._stir_env._observation_tool_pose),
+            size=sum(self._stir_env.observation_tool_pose),
         )
         self.data.qvel[_TOOL_POSE_INDEX : _TOOL_POSE_INDEX + 6][
-            self._stir_env._observation_tool_velocity
+            self._stir_env.observation_tool_velocity
         ] += self.np_random.uniform(
             low=-_RESET_NOISE_SCALE,
             high=_RESET_NOISE_SCALE,
-            size=sum(self._stir_env._observation_tool_velocity),
+            size=sum(self._stir_env.observation_tool_velocity),
         )
 
         mujoco.mj_forward(self.model, self.data)
@@ -202,19 +201,19 @@ class StirMujocoEnv(MujocoEnv, utils.EzPickle):
     def _get_observation(self) -> np.ndarray:
         tool_pose = self.data.qpos[
             _TOOL_POSE_INDEX : _TOOL_POSE_INDEX + _TOOL_POSE_DIMENSION
-        ][self._stir_env._observation_tool_pose]
+        ][self._stir_env.observation_tool_pose]
         # wxyz -> xyzw
         if tool_pose.shape == (7,):
             tool_pose = np.append(np.delete(tool_pose, 3), tool_pose[3])
         tool_velocity = self.data.qvel[_TOOL_POSE_INDEX : _TOOL_POSE_INDEX + 6][
-            self._stir_env._observation_tool_velocity
+            self._stir_env.observation_tool_velocity
         ]
 
         # ingredient_pose: wxyz
         ingredient_pose = (
             self.data.qpos[_INGREDIENTS_POSE_INDEX:]
             .reshape(-1, _INGREDIENT_POSE_DIMENSION)[
-                :, self._stir_env._observation_ingredient_pose
+                :, self._stir_env.observation_ingredient_pose
             ]
             .flatten()
         )

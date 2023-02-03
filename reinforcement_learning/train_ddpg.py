@@ -3,7 +3,7 @@ import logging
 import random
 import sys
 
-import envs
+import envs  # NOQA
 import gym
 import gym.wrappers
 import numpy as np
@@ -124,8 +124,8 @@ def main():
     def make_env(test):
         env = gym.make(
             args.env,
-            xml=args.xml,
             specialization=args.specialization,
+            xml=args.xml,
             render_mode="human",
         )
         # Unwrap TimeLimit wrapper

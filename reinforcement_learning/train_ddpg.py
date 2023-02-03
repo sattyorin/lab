@@ -38,6 +38,18 @@ def main():
         help="OpenAI Gym MuJoCo env to perform algorithm on.",
     )
     parser.add_argument(
+        "--specialization",
+        type=str,
+        default="StirEnv0",
+        help="StirEnv...",
+    )
+    parser.add_argument(
+        "--xml",
+        type=str,
+        default="stir-ingredients8_toolxyz",
+        help="xml file name",
+    )
+    parser.add_argument(
         "--seed", type=int, default=0, help="Random seed [0, 2 ** 32)"
     )
     parser.add_argument(
@@ -110,7 +122,12 @@ def main():
     utils.set_random_seed(args.seed)
 
     def make_env(test):
-        env = gym.make(args.env, render_mode="human")
+        env = gym.make(
+            args.env,
+            xml=args.xml,
+            specialization=args.specialization,
+            render_mode="human",
+        )
         # Unwrap TimeLimit wrapper
         assert isinstance(env, gym.wrappers.TimeLimit)
         env = env.env

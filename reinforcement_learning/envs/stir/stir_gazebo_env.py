@@ -8,7 +8,7 @@ import numpy as np
 import tf
 import yaml
 from envs.stir.stir_env2 import StirEnv2 as StirEnv
-from envs.stir.stir_util import get_distance_between_two_centroids
+from envs.stir.stir_utils import get_distance_between_two_centroids
 from stir_ros import Stir
 
 _FRAME_SKIP = 1

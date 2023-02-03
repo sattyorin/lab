@@ -73,7 +73,7 @@ class IStirEnv:
         ).all():
             self._dimension_ingredient_distance = 3
 
-    def _get_controller_input(self, action: np.ndarray) -> np.ndarray:
+    def get_controller_input(self, action: np.ndarray) -> np.ndarray:
         """
         Args:
             action:
@@ -82,7 +82,7 @@ class IStirEnv:
         """
         raise NotImplementedError
 
-    def _get_reward(self, observation: np.ndarray) -> Tuple[float, bool]:
+    def get_reward(self, observation: np.ndarray) -> Tuple[float, bool]:
         """
         Args:
             observation:
@@ -90,4 +90,10 @@ class IStirEnv:
             bool: reward
             int: terminated
         """
+        raise NotImplementedError
+
+    def step_variables(self, observation: np.ndarray) -> None:
+        raise NotImplementedError
+
+    def reset_variables(self, observation: np.ndarray) -> None:
         raise NotImplementedError

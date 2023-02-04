@@ -258,6 +258,7 @@ def main():
             eval_n_episodes=args.eval_n_runs,
             eval_interval=args.eval_interval,
             outdir=args.outdir,
+            checkpoint_freq=50000,
             train_max_episode_len=timestep_limit,
         )
 

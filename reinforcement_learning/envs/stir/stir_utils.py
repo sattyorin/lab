@@ -2,7 +2,7 @@ from typing import Tuple
 
 import numpy as np
 import tf
-from scipy.spatial import Delaunay
+from scipy.spatial import ConvexHull, Delaunay
 
 
 def get_euler_pose_from_quaternion(pose: np.ndarray) -> np.ndarray:
@@ -158,15 +158,13 @@ def get_reward_distance_between_two_centroids(
     return get_negative_exp(distance, bowl_diameter)
 
 
-def _get_delaunay_neighbour_indices(
-    vertices: np.ndarray,
-) -> np.ndarray:
+def _get_delaunay_neighbour_indices(tri: Delaunay) -> np.ndarray:
     """
     Fine each pair of neighbouring vertices in the delaunay triangulation.
     :param vertices: The vertices of the points to perform Delaunay triangulation on
     :return: The pairs of indices of vertices
     """
-    tri = Delaunay(vertices)
+    # tri = Delaunay(vertices)
     spacing_indices, neighbours = tri.vertex_neighbor_vertices
     ixs = np.zeros((2, len(neighbours)), dtype=int)
     np.add.at(
@@ -174,8 +172,96 @@ def _get_delaunay_neighbour_indices(
     )  # The argmax is unfortuantely needed when multiple final elements the same
     ixs[0, :] = np.cumsum(ixs[0, :])
     ixs[1, :] = neighbours
-    assert np.max(ixs) < len(vertices)
+    # assert np.max(ixs) < len(vertices)
     return ixs
+
+
+def get_distance_array_delaunay(ingredient_positions: np.ndarray) -> np.ndarray:
+    tri = Delaunay(ingredient_positions)
+    index1, index2 = _get_delaunay_neighbour_indices(tri)
+    matrix = np.zeros((5, 5), dtype=int)
+    for i1, i2 in zip(index1, index2):
+        matrix[i1, i2] = 1
+    for i1, i2 in get_deleted_line(ingredient_positions, tri)[0]:
+        matrix[i1, i2] = 0
+        matrix[i2, i1] = 0
+    index1, index2 = [], []
+    for i in range(4):
+        for j in range(i + 1, 5):
+            if matrix[i, j] == 1:
+                index1.append(i)
+                index2.append(j)
+    return np.linalg.norm(
+        ingredient_positions[index1] - ingredient_positions[index2], axis=1
+    )
+
+
+def get_deleted_line(
+    ingredient_positions: np.ndarray, tri: Delaunay
+) -> Tuple[np.ndarray, np.ndarray]:
+    # TODO(sara): chaos
+    # tri = Delaunay(ingredient_positions)
+    triangles = ingredient_positions[tri.simplices]
+    if tri.nsimplex > 3:
+        max_angles_triangle = np.zeros(tri.nsimplex)
+        max_angle_index_array_triangle = []
+        for i_triangle in range(tri.nsimplex):
+            triangle = triangles[i_triangle]
+            vec = np.array(
+                [
+                    [
+                        triangle[2][0] - triangle[1][0],
+                        triangle[2][1] - triangle[1][1],
+                    ],
+                    [
+                        triangle[2][0] - triangle[0][0],
+                        triangle[2][1] - triangle[0][1],
+                    ],
+                    [
+                        triangle[1][0] - triangle[0][0],
+                        triangle[1][1] - triangle[0][1],
+                    ],
+                ]
+            )
+            norms = np.array(
+                [
+                    np.linalg.norm(vec[0]),
+                    np.linalg.norm(vec[1]),
+                    np.linalg.norm(vec[2]),
+                ]
+            )
+
+            angles = np.zeros(3)
+            index_array = np.array([[1, 2], [0, 2], [0, 1]])
+            for i, index in enumerate(index_array):
+                if i == 1:
+                    inner = np.inner(vec[index[0]], -vec[index[1]])
+                else:
+                    inner = np.inner(vec[index[0]], vec[index[1]])
+                cos_theta = inner / (norms[index[0]] * norms[index[1]])
+                angles[i] = np.arccos(cos_theta)
+            max_angle_index_array_arg = np.argmax(angles)
+            max_angles_triangle[i_triangle] = angles[max_angle_index_array_arg]
+            max_angle_index_array_triangle.append(
+                index_array[max_angle_index_array_arg]
+            )
+        sort_angle_triangle_index = np.argsort(max_angles_triangle)
+        ret = []
+        sub_ret = []
+        vertices = ConvexHull(ingredient_positions).vertices
+        for triangle_index in sort_angle_triangle_index[::-1]:
+            points = tri.simplices[triangle_index][
+                max_angle_index_array_triangle[triangle_index]
+            ]
+            if not (points[0] in vertices and points[1] in vertices):
+                continue
+            ret.append(points)
+            sub_ret.append(triangle_index)
+            if tri.nsimplex - 3 <= len(ret):
+                break
+        sub_ret = np.delete(tri.simplices, np.array(sub_ret), axis=0)
+        return np.array(ret), sub_ret
+    return np.array([]), tri.simplices
 
 
 def get_mean_variance_array_delaunay_distance(
@@ -189,20 +275,15 @@ def get_mean_variance_array_delaunay_distance(
         float: distance
     """
     harf_num_ingredients = ingredient_positions.shape[0] // 2
-    index1, index2 = _get_delaunay_neighbour_indices(
+    distance1 = get_distance_array_delaunay(
         ingredient_positions[:harf_num_ingredients]
     )
-    distance1 = np.linalg.norm(
-        ingredient_positions[index1] - ingredient_positions[index2], axis=1
-    )
-    index1, index2 = _get_delaunay_neighbour_indices(
+    distance2 = get_distance_array_delaunay(
         ingredient_positions[harf_num_ingredients:]
     )
-    distance2 = np.linalg.norm(
-        ingredient_positions[harf_num_ingredients + index1]
-        - ingredient_positions[harf_num_ingredients + index2],
-        axis=1,
-    )
+    # np.set_printoptions(suppress=True)
+    # print(np.round(distance1, 9))
+    # np.arctan2(np.sqrt(3), 1)
 
     return (
         np.array([np.mean(distance1), np.mean(distance2)]),

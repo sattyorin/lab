@@ -40,7 +40,7 @@ def main():
     parser.add_argument(
         "--specialization",
         type=str,
-        default="StirEnv0",
+        default="StirEnvXYZIngredients8Stir",
         help="StirEnv...",
     )
     parser.add_argument(

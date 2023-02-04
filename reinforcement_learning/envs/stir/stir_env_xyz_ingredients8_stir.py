@@ -10,7 +10,7 @@ from gym.spaces import Box
 _TARGET_VELOCITY = 0.03
 
 
-class StirEnv0(IStirEnv):
+class StirEnvXYZIngredients8Stir(IStirEnv):
     def __init__(
         self,
         init_tool_pose: np.ndarray,
@@ -106,7 +106,7 @@ class StirEnv0(IStirEnv):
         )  # for mujoco?
 
     def get_reward(self, observation: np.ndarray) -> Tuple[float, bool]:
-        tool_pose = observation[: self._length_tool_pose]
+        # tool_pose = observation[: self._length_tool_pose]
         tool_velocity = observation[
             self._length_tool_pose : self._length_tool_pose
             + self._length_tool_velocity
@@ -124,25 +124,6 @@ class StirEnv0(IStirEnv):
         self._total_reward_keep_moving_end_effector += (
             reward_keep_moving_end_effector
         )
-
-        if (
-            self._total_reward_keep_moving_end_effector / (self._num_step + 1)
-            < 0.2
-        ):
-            return -1000.0, True
-        # -------------------------------------------------------
-
-        # -------------------------------------------------------
-        reward_distance_between_tool_and_ingredient = (
-            stir_utils.get_reward_distance_between_tool_and_ingredient(
-                ingredient_positions[:2],
-                tool_pose[:2],
-                self._bowl["radius_bottom"],
-            )
-        )
-
-        if self.detect_touch(ingredient_positions):
-            return 1000.0, True
         # -------------------------------------------------------
 
         # -------------------------------------------------------
@@ -161,59 +142,12 @@ class StirEnv0(IStirEnv):
             self._total_reward_array_keep_moving_ingredients += (
                 reward_array_keep_moving_ingredients
             )
-            reward_keep_moving_ingredients = np.mean(
-                reward_array_keep_moving_ingredients
-            )
-        else:
-            reward_keep_moving_ingredients = 0.0
+            # reward_keep_moving_ingredients = np.mean(
+            #     reward_array_keep_moving_ingredients
+            # )
+        # else:
+        #     reward_keep_moving_ingredients = 0.0
 
-        if (
-            self._num_step > 100
-            and (
-                self._total_reward_array_keep_moving_ingredients
-                / (self._num_step + 1)
-                < 0.2
-            ).any()
-        ):
-            return -1000.0, True
-        # -------------------------------------------------------
-
-        # -------------------------------------------------------
-        distance_array_to_center_point = (
-            stir_utils.get_distance_array_to_center_point(
-                ingredient_positions.reshape(-1, self._length_ingredient_pose)[
-                    :, :2
-                ]
-            )
-        )
-        reward_array_distance_to_center_pointrd = (
-            stir_utils.get_reward_array_distance_to_center_point(
-                distance_array_to_center_point, self._bowl["radius_top"]
-            )
-        )
-        reward_distance_to_center_pointrd = np.mean(
-            reward_array_distance_to_center_pointrd
-        )
-        if (reward_array_distance_to_center_pointrd > 0.9).all():
-            return 1000.0, True
-        # -------------------------------------------------------
-
-        # -------------------------------------------------------
-        distance_to_center_plane = stir_utils.get_distance_to_center_plane(
-            ingredient_positions.reshape(-1, self._length_ingredient_pose)[
-                :, : self._dimension_ingredient_distance
-            ],
-            self._every_other_ingredients,
-        )
-        reward_distance_to_center_plane = (
-            stir_utils.get_reward_distance_to_center_plane(
-                distance_to_center_plane,
-                self._bowl["radius_bottom"] * self._num_ingredients,
-            )
-        )
-
-        if reward_distance_to_center_plane > 0.9:
-            return 1000.0, True
         # -------------------------------------------------------
 
         # -------------------------------------------------------
@@ -232,8 +166,6 @@ class StirEnv0(IStirEnv):
             )
         )
 
-        if reward_distance_between_two_centroids > 0.9:
-            return 1000.0, True
         # -------------------------------------------------------
 
         # -------------------------------------------------------
@@ -255,25 +187,32 @@ class StirEnv0(IStirEnv):
             self._bowl["radius_bottom"] ** 2,  # TODO(sara): tmp
         )
 
-        if reward_dyelauna_mean > 0.9:
-            return 1000.0, True
-        if reward_dyelauna_variance > 0.9:
-            return 1000.0, True
         # -------------------------------------------------------
 
         reward = (
-            reward_keep_moving_end_effector
-            + reward_distance_between_tool_and_ingredient
-            + reward_keep_moving_ingredients
-            + reward_distance_to_center_pointrd
-            + reward_distance_to_center_plane
-            + reward_distance_between_two_centroids
+            +reward_distance_between_two_centroids * 0.7
             + reward_dyelauna_mean
             + reward_dyelauna_variance
         )
 
-        # if self._check_collision_with_bowl():
-        #     return -100, True
+        if reward > 2.0:
+            return 1000.0, True
+
+        if (
+            self._total_reward_keep_moving_end_effector / (self._num_step + 1)
+            < 0.2
+        ):
+            return reward, True
+
+        if (
+            self._num_step > 100
+            and not (
+                self._total_reward_array_keep_moving_ingredients
+                / (self._num_step + 1)
+                > 0.2
+            ).any()
+        ):
+            return reward, True
 
         return reward, False
 

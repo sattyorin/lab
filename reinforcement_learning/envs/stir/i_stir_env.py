@@ -15,6 +15,7 @@ class IStirEnv:
         observation_tool_velocity: np.ndarray,
         observation_ingredient_pose: np.ndarray,
         action_space: Optional[Box],
+        num_ingredients: int,
     ) -> None:
         """
         observation_tool_pose: [position.x, position.y, position.z,
@@ -53,23 +54,22 @@ class IStirEnv:
             shape=(
                 sum(observation_tool_pose)
                 + sum(observation_tool_velocity)
-                + sum(observation_ingredient_pose) * self._num_ingredients,
+                + sum(observation_ingredient_pose) * num_ingredients,
             ),
             dtype=np.float64,
         )
 
-        self._length_tool_pose = sum(self._observation_tool_pose)
-        self._length_tool_velocity = sum(self._observation_tool_velocity)
-        self._length_ingredient_pose = sum(self._observation_ingredient_pose)
+        self._length_tool_pose = sum(self.observation_tool_pose)
+        self._length_tool_velocity = sum(self.observation_tool_velocity)
+        self._length_ingredient_pose = sum(self.observation_ingredient_pose)
 
         self._dimension_ingredient_distance: Optional[int] = None
         if not (
-            self._observation_ingredient_pose[:3]
-            ^ np.array([True, True, False])
+            self.observation_ingredient_pose[:3] ^ np.array([True, True, False])
         ).all():
             self._dimension_ingredient_distance = 2
         elif not (
-            self._observation_ingredient_pose[:3] ^ np.array([True, True, True])
+            self.observation_ingredient_pose[:3] ^ np.array([True, True, True])
         ).all():
             self._dimension_ingredient_distance = 3
 

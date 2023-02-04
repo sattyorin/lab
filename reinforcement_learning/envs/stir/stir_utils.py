@@ -179,15 +179,15 @@ def _get_delaunay_neighbour_indices(tri: Delaunay) -> np.ndarray:
 def get_distance_array_delaunay(ingredient_positions: np.ndarray) -> np.ndarray:
     tri = Delaunay(ingredient_positions)
     index1, index2 = _get_delaunay_neighbour_indices(tri)
-    matrix = np.zeros((5, 5), dtype=int)
+    matrix = np.zeros((tri.npoints, tri.npoints), dtype=int)
     for i1, i2 in zip(index1, index2):
         matrix[i1, i2] = 1
     for i1, i2 in get_deleted_line(ingredient_positions, tri)[0]:
         matrix[i1, i2] = 0
         matrix[i2, i1] = 0
     index1, index2 = [], []
-    for i in range(4):
-        for j in range(i + 1, 5):
+    for i in range(tri.npoints - 1):
+        for j in range(i + 1, tri.npoints):
             if matrix[i, j] == 1:
                 index1.append(i)
                 index2.append(j)
@@ -202,7 +202,7 @@ def get_deleted_line(
     # TODO(sara): chaos
     # tri = Delaunay(ingredient_positions)
     triangles = ingredient_positions[tri.simplices]
-    if tri.nsimplex > 3:
+    if tri.nsimplex > tri.npoints - 2:
         max_angles_triangle = np.zeros(tri.nsimplex)
         max_angle_index_array_triangle = []
         for i_triangle in range(tri.nsimplex):
@@ -257,7 +257,7 @@ def get_deleted_line(
                 continue
             ret.append(points)
             sub_ret.append(triangle_index)
-            if tri.nsimplex - 3 <= len(ret):
+            if tri.nsimplex - tri.npoints - 2 <= len(ret):
                 break
         sub_ret = np.delete(tri.simplices, np.array(sub_ret), axis=0)
         return np.array(ret), sub_ret

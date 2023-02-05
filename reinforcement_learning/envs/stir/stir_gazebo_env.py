@@ -84,13 +84,19 @@ class StirGazeboEnv(gym.Env):
         else:
             raise ValueError("controller not selected")
 
+        self._previous_sec: Optional[float] = None
+
     def step_position_controller(self, action: np.ndarray) -> None:
         q = tf.transformations.quaternion_from_euler(*action[3:])
         pose_target = np.concatenate([action[0:3], q])
-        self.stir.step_position_controller(pose_target)
+        self.stir.step_position_controller(
+            pose_target, self._stir_env.observation_tool_pose
+        )
 
     def step_velocity_controller(self, action: np.ndarray) -> None:
-        self.stir.step_velocity_controller(action)
+        self.stir.step_velocity_controller(
+            action, self._stir_env.observation_tool_pose
+        )
 
     def step(
         self, action: np.ndarray
@@ -143,6 +149,7 @@ class StirGazeboEnv(gym.Env):
 
         observation = self._get_observation()
         self._stir_env.reset_variables(observation)
+        self._previous_sec: Optional[float] = None
         return observation, {}
 
     def _get_observation(self) -> np.ndarray:

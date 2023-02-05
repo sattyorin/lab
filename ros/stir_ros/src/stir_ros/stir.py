@@ -298,7 +298,10 @@ class Stir:
     def get_ingredient_poses(self) -> np.ndarray:
         return self._ingredient_buffer
 
-    def _publish_target_pose(self, pose: np.ndarray, wait=False) -> None:
+    def _publish_target_pose(
+        self, pose: np.ndarray, action_pose_flag: np.ndarray
+    ) -> None:
+        # TODO(sara): action_pose_flag
         target_pose = self._get_pose_from_array(pose)
         target_pose_stampd = PoseStamped()
         target_pose_stampd.header.stamp = rospy.Time.now()
@@ -306,24 +309,36 @@ class Stir:
         target_pose_stampd.pose = target_pose
         self._target_pose_publisher.publish(target_pose_stampd)
 
-    def _publish_twist_stamped(self, twist: np.ndarray) -> None:
+    def _publish_twist_stamped(
+        self, twist: np.ndarray, action_pose_flag: np.ndarray
+    ) -> None:
         twist_stamped = TwistStamped()
         twist_stamped.header.stamp = rospy.Time.now()
         twist_stamped.header.frame_id = WORLD
-        twist_stamped.twist.linear.x = twist[0]
-        twist_stamped.twist.linear.y = twist[1]
-        twist_stamped.twist.linear.z = twist[2]
-        twist_stamped.twist.angular.x = twist[3]
-        twist_stamped.twist.angular.y = twist[4]
-        twist_stamped.twist.angular.z = twist[5]
+        if action_pose_flag[0]:
+            twist_stamped.twist.linear.x = twist[0]
+        if action_pose_flag[1]:
+            twist_stamped.twist.linear.y = twist[1]
+        if action_pose_flag[2]:
+            twist_stamped.twist.linear.z = twist[2]
+        if action_pose_flag[3]:
+            twist_stamped.twist.angular.x = twist[3]
+        if action_pose_flag[4]:
+            twist_stamped.twist.angular.y = twist[4]
+        if action_pose_flag[5]:
+            twist_stamped.twist.angular.z = twist[5]
         self._cartesian_command_publisher.publish(twist_stamped)
 
-    def step_position_controller(self, action: np.ndarray) -> None:
-        self._publish_target_pose(action)
+    def step_position_controller(
+        self, action: np.ndarray, action_pose_flag: np.ndarray
+    ) -> None:
+        self._publish_target_pose(action, action_pose_flag)
         self._step_world_proxy()
 
-    def step_velocity_controller(self, action: np.ndarray) -> None:
-        self._publish_twist_stamped(action)
+    def step_velocity_controller(
+        self, action: np.ndarray, action_pose_flag: np.ndarray
+    ) -> None:
+        self._publish_twist_stamped(action, action_pose_flag)
         self._step_world_proxy()
 
     def _switch_controller(

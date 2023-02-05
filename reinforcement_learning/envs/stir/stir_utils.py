@@ -61,12 +61,18 @@ def get_reward_array_keep_moving_ingredients(
     return:
         float: reward array
     """
-    return get_sigmoid(
-        np.linalg.norm(
-            ingredient_positions - previous_ingredient_position,
-            axis=1,
-        ),
-        target_moving_distance,
+    return (
+        get_sigmoid(
+            np.round(
+                np.linalg.norm(
+                    ingredient_positions - previous_ingredient_position,
+                    axis=1,
+                ),
+                3,
+            ),
+            target_moving_distance,
+        )
+        - 0.01
     )
 
 

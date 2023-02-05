@@ -40,7 +40,10 @@ def main():
     parser.add_argument(
         "--specialization",
         type=str,
-        default="StirEnvXYZIngredients8Stir",
+        # default="StirEnvXYZPositionIngredients8MoveTool",
+        # default="StirEnvXYZPositionIngredients8Stir",
+        default="StirEnvXYZPositionIngredients8KeepMovingIngredients",
+        # default="StirEnvXYZVelocityIngredient4",
         help="StirEnv...",
     )
     parser.add_argument(
@@ -177,12 +180,12 @@ def main():
     rbuf = replay_buffers.ReplayBuffer(10**6)
 
     explorer = explorers.AdditiveGaussian(
-        scale=0.1, low=action_space.low, high=action_space.high
+        scale=0.5, low=action_space.low, high=action_space.high
     )
     # explorer = explorers.AdditiveOU(
     #     mu=0.0,
     #     theta=0.15,
-    #     sigma=0.2,
+    #     sigma=0.3,
     #     start_with_mu=False,
     # )
 

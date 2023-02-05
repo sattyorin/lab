@@ -10,7 +10,7 @@ from gym.spaces import Box
 _TARGET_VELOCITY = 0.03
 
 
-class StirEnvXYZIngredients8Stir(IStirEnv):
+class StirEnvXYZPositionIngredients8Stir(IStirEnv):
     def __init__(
         self,
         init_tool_pose: np.ndarray,
@@ -92,7 +92,7 @@ class StirEnvXYZIngredients8Stir(IStirEnv):
             self._num_ingredients
         )
         self._previous_reward = 0.0
-        self._total_reward_diff = 10.0
+        self._total_reward_diff = 3.0
 
     def get_controller_input(self, action: np.ndarray) -> np.ndarray:
         a = (
@@ -201,7 +201,7 @@ class StirEnvXYZIngredients8Stir(IStirEnv):
             return 1000.0, True
 
         self._total_reward_diff += abs(self._previous_reward - reward)
-        if self._total_reward_diff / (self._num_step + 1) < 0.05:
+        if self._total_reward_diff / (self._num_step + 1) < 0.01:
             return reward, True
         self._previous_reward = reward
 
@@ -238,7 +238,7 @@ class StirEnvXYZIngredients8Stir(IStirEnv):
             self._num_ingredients
         )
         self._previous_reward = 0.0
-        self._total_reward_diff = 10.0
+        self._total_reward_diff = 3.0
 
     def detect_touch(self, ingredient_positions: np.ndarray) -> bool:
         if (

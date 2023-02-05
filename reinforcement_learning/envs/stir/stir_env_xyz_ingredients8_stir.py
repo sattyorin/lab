@@ -91,6 +91,8 @@ class StirEnvXYZIngredients8Stir(IStirEnv):
         self._total_reward_array_keep_moving_ingredients = np.zeros(
             self._num_ingredients
         )
+        self._previous_reward = 0.0
+        self._total_reward_diff = 10.0
 
     def get_controller_input(self, action: np.ndarray) -> np.ndarray:
         a = (
@@ -107,44 +109,44 @@ class StirEnvXYZIngredients8Stir(IStirEnv):
 
     def get_reward(self, observation: np.ndarray) -> Tuple[float, bool]:
         # tool_pose = observation[: self._length_tool_pose]
-        tool_velocity = observation[
-            self._length_tool_pose : self._length_tool_pose
-            + self._length_tool_velocity
-        ]
+        # tool_velocity = observation[
+        #     self._length_tool_pose : self._length_tool_pose
+        #     + self._length_tool_velocity
+        # ]
         ingredient_positions = observation[
             self._length_tool_pose + self._length_tool_velocity :
         ]
 
         # -------------------------------------------------------
-        reward_keep_moving_end_effector = (
-            stir_utils.get_reward_keep_moving_end_effector(
-                np.linalg.norm(tool_velocity[:2]), _TARGET_VELOCITY
-            )
-        )
-        self._total_reward_keep_moving_end_effector += (
-            reward_keep_moving_end_effector
-        )
+        # reward_keep_moving_end_effector = (
+        #     stir_utils.get_reward_keep_moving_end_effector(
+        #         np.linalg.norm(tool_velocity[:2]), _TARGET_VELOCITY
+        #     )
+        # )
+        # self._total_reward_keep_moving_end_effector += (
+        #     reward_keep_moving_end_effector
+        # )
         # -------------------------------------------------------
 
         # -------------------------------------------------------
-        if self._previous_ingredient_positions is not None:
-            reward_array_keep_moving_ingredients = (
-                stir_utils.get_reward_array_keep_moving_ingredients(
-                    ingredient_positions.reshape(
-                        -1, self._length_ingredient_pose
-                    )[:, : self._dimension_ingredient_distance],
-                    self._previous_ingredient_positions.reshape(
-                        -1, self._length_ingredient_pose
-                    )[:, : self._dimension_ingredient_distance],
-                    self._bowl["radius_bottom"] * 0.0001,
-                )
-            )
-            self._total_reward_array_keep_moving_ingredients += (
-                reward_array_keep_moving_ingredients
-            )
-            # reward_keep_moving_ingredients = np.mean(
-            #     reward_array_keep_moving_ingredients
-            # )
+        # if self._previous_ingredient_positions is not None:
+        #     reward_array_keep_moving_ingredients = (
+        #         stir_utils.get_reward_array_keep_moving_ingredients(
+        #             ingredient_positions.reshape(
+        #                 -1, self._length_ingredient_pose
+        #             )[:, : self._dimension_ingredient_distance],
+        #             self._previous_ingredient_positions.reshape(
+        #                 -1, self._length_ingredient_pose
+        #             )[:, : self._dimension_ingredient_distance],
+        #             self._bowl["radius_bottom"] * 0.0001,
+        #         )
+        #     )
+        #     self._total_reward_array_keep_moving_ingredients += (
+        #         reward_array_keep_moving_ingredients
+        #     )
+        # reward_keep_moving_ingredients = np.mean(
+        #     reward_array_keep_moving_ingredients
+        # )
         # else:
         #     reward_keep_moving_ingredients = 0.0
 
@@ -198,21 +200,26 @@ class StirEnvXYZIngredients8Stir(IStirEnv):
         if reward > 2.0:
             return 1000.0, True
 
-        if (
-            self._total_reward_keep_moving_end_effector / (self._num_step + 1)
-            < 0.2
-        ):
+        self._total_reward_diff += abs(self._previous_reward - reward)
+        if self._total_reward_diff / (self._num_step + 1) < 0.05:
             return reward, True
+        self._previous_reward = reward
 
-        if (
-            self._num_step > 100
-            and not (
-                self._total_reward_array_keep_moving_ingredients
-                / (self._num_step + 1)
-                > 0.2
-            ).any()
-        ):
-            return reward, True
+        # if (
+        #     self._total_reward_keep_moving_end_effector / (self._num_step + 1)
+        #     < 0.2
+        # ):
+        #     return reward, True
+
+        # if (
+        #     self._num_step > 100
+        #     and not (
+        #         self._total_reward_array_keep_moving_ingredients
+        #         / (self._num_step + 1)
+        #         > 0.2
+        #     ).any()
+        # ):
+        #     return reward, True
 
         return reward, False
 
@@ -230,6 +237,8 @@ class StirEnvXYZIngredients8Stir(IStirEnv):
         self._total_reward_array_keep_moving_ingredients = np.zeros(
             self._num_ingredients
         )
+        self._previous_reward = 0.0
+        self._total_reward_diff = 10.0
 
     def detect_touch(self, ingredient_positions: np.ndarray) -> bool:
         if (

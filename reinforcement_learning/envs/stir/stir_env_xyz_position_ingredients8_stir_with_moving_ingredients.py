@@ -195,13 +195,16 @@ class StirEnvXYZPositionIngredients8StirWithMovingInredients(IStirEnv):
             +reward_distance_between_two_centroids * 0.7
             + reward_dyelauna_mean
             + reward_dyelauna_variance
-            # + reward_keep_moving_ingredients * 0.5
-            + reward_keep_moving_ingredients
         )
 
-        if reward > 2.5:
+        if reward > 2.0:
             # print(f"{reward}: {self._num_step} done")
             return 1000.0, True
+
+        reward += reward_keep_moving_ingredients * 0.5
+
+        if reward < 0.7:
+            return reward, True
 
         # self._total_reward_diff += abs(self._previous_reward - reward)
         # if self._total_reward_diff / (self._num_step + 1) < 0.01:

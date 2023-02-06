@@ -10,7 +10,7 @@ from gym.spaces import Box
 _TARGET_VELOCITY = 0.03
 
 
-class StirEnvXYZPositionIngredients8StirWithMovingInredients(IStirEnv):
+class StirEnvXYZPositionIngredients8StirWithMovingIngredients(IStirEnv):
     def __init__(
         self,
         init_tool_pose: np.ndarray,

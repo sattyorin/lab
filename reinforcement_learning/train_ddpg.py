@@ -44,7 +44,7 @@ def main():
         # default="StirEnvXYZPositionIngredients8Stir",
         # default="StirEnvXYZPositionIngredients8KeepMovingIngredients",
         # default="StirEnvXYZVelocityIngredient4",
-        default="StirEnvXYZPositionIngredients8StirWithMovingInredients",
+        default="StirEnvXYZPositionIngredients8StirWithMovingIngredients",
         help="StirEnv...",
     )
     parser.add_argument(

@@ -14,7 +14,7 @@
   <arg name="use_gui" default="false" />
   <arg name="moveit_debug" default="false" />
   <arg name="gazebo_debug" default="false" />
-  <arg name="gui" default="false" />
+  <arg name="gui" default="true" />
   <!-- rosrun gazebo_ros gzclient __name:=piyo  -->
   <arg name="paused" default="false" />
   <arg name="use_sim_time" default="true" />
@@ -35,7 +35,8 @@
   <arg name="port" default="/dev/ttyUSB0" />
   <arg name="robot_description" default="robot_description" />
   <arg name="robot_base_link_offset_x" default="0.0" />
-  <arg name="arm_controller_type" default="velocity" />
+  <arg name="arm_controller_type" default="position" />
+  <arg name="action_control_type" default="velocity" />
 
   <param name="$(arg robot_description)"
          command="$(find xacro)/xacro --inorder '$(arg robot)'" />
@@ -119,10 +120,12 @@
     <arg name="debug" value="$(arg moveit_debug)" />
   </include>
 
-  <include file="$(find stir_ros)/launch/pose_tracker.launch" unless="$(eval arg('arm_controller_type') == 'velocity')">
+  <include file="$(find stir_ros)/launch/pose_tracker.launch" unless="$(eval arg('action_control_type') == 'velocity')">
+    <arg name="action_control_type" value="$(arg action_control_type)" />
     <arg name="arm_controller_type" value="$(arg arm_controller_type)" />
   </include>
-  <include file="$(find stir_ros)/launch/bringup_servo.launch" if="$(eval arg('arm_controller_type') == 'velocity')">
+  <include file="$(find stir_ros)/launch/bringup_servo.launch" if="$(eval arg('action_control_type') == 'velocity')">
+    <arg name="action_control_type" value="$(arg action_control_type)" />
     <arg name="arm_controller_type" value="$(arg arm_controller_type)" />
   </include>
 

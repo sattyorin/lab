@@ -59,12 +59,18 @@ class Stir:
         arm_controller_type = rospy.get_param("/arm_controller_type")
         if arm_controller_type == "position":
             self._controller = POSITION_CONTROLLER
-            stir_ros_node = POSITION_CONTROLLER_STIR_ROS_NODE
         elif arm_controller_type == "velocity":
             self._controller = VELOCITY_CONTROLLER
-            stir_ros_node = VELOCITY_CONTROLLER_STIR_ROS_NODE
         else:
             rospy.logerr("invalid controller")
+
+        action_control_type = rospy.get_param("/action_control_type")
+        if action_control_type == "position":
+            stir_ros_node = POSITION_CONTROLLER_STIR_ROS_NODE
+        elif action_control_type == "velocity":
+            stir_ros_node = VELOCITY_CONTROLLER_STIR_ROS_NODE
+        else:
+            rospy.logerr("invalid action control")
 
         model_states: ModelStates = rospy.wait_for_message(
             "/gazebo/model_states", ModelStates, timeout=2

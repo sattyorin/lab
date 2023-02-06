@@ -82,7 +82,9 @@ class IStirEnv:
         """
         raise NotImplementedError
 
-    def get_reward(self, observation: np.ndarray) -> Tuple[float, bool]:
+    def get_reward(
+        self, observation: np.ndarray, reset_mode: bool = False
+    ) -> Tuple[float, bool]:
         """
         Args:
             observation:

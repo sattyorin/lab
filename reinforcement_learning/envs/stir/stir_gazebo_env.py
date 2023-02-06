@@ -191,19 +191,19 @@ class StirGazeboEnv(gym.Env):
         # TODO(sara): do the test
         bowl_top_position_z = (
             self._init_tool_pose[2]
-            + self._bowl["bowl_height"]
-            - self._bowl["bowl_bottom_to_init_z"]
+            + self._bowl["height"]
+            - self._bowl["bottom_to_init_z"]
         )
         bowl_bottom_position_z = (
-            self._init_tool_pose[2] - self._bowl["bowl_bottom_to_init_z"]
+            self._init_tool_pose[2] - self._bowl["bottom_to_init_z"]
         )
 
         # tool end condition
-        a = (
-            self._bowl["bowl_radius_top"] - self._bowl["bowl_radius_bottom"]
-        ) / (bowl_top_position_z - bowl_bottom_position_z)
+        a = (self._bowl["radius_top"] - self._bowl["radius_bottom"]) / (
+            bowl_top_position_z - bowl_bottom_position_z
+        )
         if np.hypot(*(end_pose[:2] - self._init_tool_pose[:2])) > self._bowl[
-            "bowl_radius_bottom"
+            "radius_bottom"
         ] + a * (end_pose[2] - bowl_bottom_position_z):
             return True
 
@@ -213,7 +213,7 @@ class StirGazeboEnv(gym.Env):
 
         a = 1 + a_xy
         b = a_xy * b_xy
-        c = b_xy**2 - self._bowl["bowl_radius_top"] ** 2
+        c = b_xy**2 - self._bowl["radius_top"] ** 2
         x1 = (-b + np.sqrt(b**2 - 4 * a * c)) / (2 * a)
         x2 = (-b - np.sqrt(b**2 - 4 * a * c)) / (2 * a)
         y1 = a_xy * x1 + b_xy

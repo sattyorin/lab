@@ -119,14 +119,14 @@ class StirEnvXYZVelocityIngredient4(IStirEnv):
 
         reward = reward_keep_moving_end_effector
 
-        if (
-            self._total_reward_keep_moving_end_effector / (self._num_step + 1)
-            < 0.2
-        ):
-            return reward, True
+        # if (
+        #     self._total_reward_keep_moving_end_effector / (self._num_step + 1)
+        #     < 0.2
+        # ):
+        #     return reward, True
 
-        if self._check_collision_with_bowl():
-            return -1.0, True
+        # if self._check_collision_with_bowl():
+        #     return -1.0, True
 
         return reward, False
 

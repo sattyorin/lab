@@ -107,7 +107,9 @@ class StirEnvXYZPositionIngredients8StirWithMovingInredients(IStirEnv):
             ]
         )  # for mujoco?
 
-    def get_reward(self, observation: np.ndarray) -> Tuple[float, bool]:
+    def get_reward(
+        self, observation: np.ndarray, reset_mode: bool = False
+    ) -> Tuple[float, bool]:
         # tool_pose = observation[: self._length_tool_pose]
         # tool_velocity = observation[
         #     self._length_tool_pose : self._length_tool_pose
@@ -192,36 +194,38 @@ class StirEnvXYZPositionIngredients8StirWithMovingInredients(IStirEnv):
         # -------------------------------------------------------
 
         reward = (
-            +reward_distance_between_two_centroids * 0.7
+            +reward_distance_between_two_centroids
             + reward_dyelauna_mean
             + reward_dyelauna_variance
         )
 
-        if reward > 2.0:
+        if reward > 1.9:
             # print(f"{reward}: {self._num_step} done")
             return 1000.0, True
 
-        reward += reward_keep_moving_ingredients * 0.5
+        self._total_reward_diff += abs(self._previous_reward - reward)
+        if self._total_reward_diff / (self._num_step + 1) < 0.01:
+            return reward, True
+        self._previous_reward = reward
+
+        reward_with_keep_moving = reward + reward_keep_moving_ingredients
 
         if reward < 0.7:
-            return reward, True
-
-        # self._total_reward_diff += abs(self._previous_reward - reward)
-        # if self._total_reward_diff / (self._num_step + 1) < 0.01:
-        #     return reward, True
-        # self._previous_reward = reward
+            return reward_with_keep_moving, True
 
         if (
             sum(
                 self._total_reward_array_keep_moving_ingredients
                 / (self._num_step + 1)
-                > 0.03
+                > 0.05
             )
             < 2
         ):
-            return reward, True
+            return reward_with_keep_moving, True
 
-        return reward, False
+        if reset_mode:
+            return reward, False
+        return reward_with_keep_moving, False
 
     def step_variables(self, observation: np.ndarray) -> None:
         self._previous_ingredient_positions = observation[

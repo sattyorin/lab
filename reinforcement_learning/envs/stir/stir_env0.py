@@ -105,7 +105,9 @@ class StirEnv0(IStirEnv):
             ]
         )  # for mujoco?
 
-    def get_reward(self, observation: np.ndarray) -> Tuple[float, bool]:
+    def get_reward(
+        self, observation: np.ndarray, reset_mode: bool = False
+    ) -> Tuple[float, bool]:
         tool_pose = observation[: self._length_tool_pose]
         tool_velocity = observation[
             self._length_tool_pose : self._length_tool_pose

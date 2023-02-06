@@ -19,9 +19,9 @@ _TOOL_POSE_INDEX = 0
 _INGREDIENTS_POSE_INDEX = _TOOL_POSE_DIMENSION
 _RESET_INGREDIENTS_RADIUS_MIN = 0.01
 _RESET_INGREDIENTS_RADIUS_MAX = 0.03
-_THRESHOLD_RESET_REWARD = 0.9
+_THRESHOLD_RESET_REWARD = 1.90
 _RESET_NOISE_SCALE = 0.01
-_MAX_TRIAL_INGREDIENT_RANDOMIZATION = 100
+_MAX_TRIAL_INGREDIENT_RANDOMIZATION = 500
 
 
 class StirMujocoEnv(MujocoEnv, utils.EzPickle):
@@ -167,8 +167,9 @@ class StirMujocoEnv(MujocoEnv, utils.EzPickle):
                         angle
                     )
                 mujoco.mj_forward(self.model, self.data)
+                # mujoco.mj_step(self.model, self.data, nstep=100)
                 reward, terminated = self._stir_env.get_reward(
-                    self._get_observation()
+                    self._get_observation(), reset_mode=True
                 )
                 if not terminated and reward < _THRESHOLD_RESET_REWARD:
                     break

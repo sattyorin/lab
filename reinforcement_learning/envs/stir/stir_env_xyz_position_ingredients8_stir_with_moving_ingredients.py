@@ -208,24 +208,26 @@ class StirEnvXYZPositionIngredients8StirWithMovingIngredients(IStirEnv):
             return reward, True
         self._previous_reward = reward
 
-        reward_with_keep_moving = reward + reward_keep_moving_ingredients
+        # reward_with_keep_moving = reward + reward_keep_moving_ingredients
 
-        if reward < 0.7:
-            return reward_with_keep_moving, True
+        # if reward < 0.7:
+        #     return reward_with_keep_moving, True
 
-        if (
-            sum(
-                self._total_reward_array_keep_moving_ingredients
-                / (self._num_step + 1)
-                > 0.05
-            )
-            < 2
-        ):
-            return reward_with_keep_moving, True
+        # if (
+        #     sum(
+        #         self._total_reward_array_keep_moving_ingredients
+        #         / (self._num_step + 1)
+        #         > 0.05
+        #     )
+        #     < 2
+        # ):
+        #     return reward_with_keep_moving, True
 
-        if reset_mode:
-            return reward, False
-        return reward_with_keep_moving, False
+        # if reset_mode:
+        #     return reward, False
+        # return reward_with_keep_moving, False
+
+        return reward, False
 
     def step_variables(self, observation: np.ndarray) -> None:
         self._previous_ingredient_positions = observation[

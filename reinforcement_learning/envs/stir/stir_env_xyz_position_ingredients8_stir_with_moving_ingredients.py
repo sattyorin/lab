@@ -138,7 +138,7 @@ class StirEnvXYZPositionIngredients8StirWithMovingInredients(IStirEnv):
                     self._previous_ingredient_positions.reshape(
                         -1, self._length_ingredient_pose
                     )[:, : self._dimension_ingredient_distance],
-                    self._bowl["radius_bottom"] * 0.0001,
+                    self._bowl["radius_bottom"] * 0.02,
                 )
             )
             self._total_reward_array_keep_moving_ingredients += (
@@ -200,7 +200,7 @@ class StirEnvXYZPositionIngredients8StirWithMovingInredients(IStirEnv):
         )
 
         if reward > 2.5:
-            print(f"{reward}: {self._num_step} done")
+            # print(f"{reward}: {self._num_step} done")
             return 1000.0, True
 
         # self._total_reward_diff += abs(self._previous_reward - reward)

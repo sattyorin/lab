@@ -10,7 +10,7 @@ from gym.spaces import Box
 _TARGET_VELOCITY = 0.03
 
 
-class StirEnvXYZVelocityIngredient4(IStirEnv):
+class StirEnvXYZPosition(IStirEnv):
     def __init__(
         self,
         init_tool_pose: np.ndarray,
@@ -21,8 +21,8 @@ class StirEnvXYZVelocityIngredient4(IStirEnv):
         self._num_ingredients = num_ingredients
         self._check_collision_with_bowl = check_collision_with_bowl
 
-        is_position_controller = False
-        is_velocity_controller = True
+        is_position_controller = True
+        is_velocity_controller = False
         action_is_position = True
         action_is_velocity = False
         observation_tool_pose = np.array(
@@ -35,20 +35,8 @@ class StirEnvXYZVelocityIngredient4(IStirEnv):
             [False, False, False, False, False, False, False]
         )
 
-        # action_low_relative = np.array(
-        #     [-0.30, -0.30, -0.2, -45.0, -45.0, -45.0]
-        # )
-        # action_high_relative = np.array([0.30, 0.30, 0.20, 45.0, 45.0, 45.0])
-
-        # init_tool_euler_pose = stir_utils.get_euler_pose_from_quaternion(
-        #     init_tool_pose
-        # )
-
-        # action_low = action_low_relative + init_tool_euler_pose
-        # action_high = action_high_relative + init_tool_euler_pose
-
-        action_low = np.array([-0.1, -0.1, -0.1])
-        action_high = np.array([0.1, 0.1, 0.1])
+        action_low = np.array([-1.0, -1.0, 0.0])
+        action_high = np.array([1.0, 1.0, 0.014])  # ingredient_height
 
         action_space = Box(
             low=action_low,
@@ -93,7 +81,17 @@ class StirEnvXYZVelocityIngredient4(IStirEnv):
         )
 
     def get_controller_input(self, action: np.ndarray) -> np.ndarray:
-        return action
+        a = (
+            self._bowl["radius_top"] - self._bowl["radius_bottom"]
+        ) / self._bowl["height"] * action[2] + self._bowl["radius_bottom"]
+
+        return np.array(
+            [
+                a * action[0],
+                a * action[1],
+                action[2] - self._bowl["bottom_to_init_z"],
+            ]
+        )
 
     def get_reward(
         self, observation: np.ndarray, reset_mode: bool = False

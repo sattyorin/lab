@@ -87,8 +87,13 @@ class StirGazeboEnv(gym.Env):
         self._previous_sec: Optional[float] = None
 
     def step_position_controller(self, action: np.ndarray) -> None:
-        q = tf.transformations.quaternion_from_euler(*action[3:])
-        pose_target = np.concatenate([action[0:3], q])
+        a = np.zeros(6, dtype=float)
+        for i in range(5):
+            if self._stir_env.observation_tool_pose[i]:
+                a[i] = action[i]
+
+        q = tf.transformations.quaternion_from_euler(*a[3:])
+        pose_target = np.concatenate([a[0:3], q])
         self.stir.step_position_controller(
             pose_target, self._stir_env.observation_tool_pose
         )

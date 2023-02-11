@@ -5,6 +5,7 @@ from typing import Tuple
 import moveit_commander
 import numpy as np
 import rospy
+import tf
 import tf2_ros
 from controller_manager_msgs.srv import (
     ListControllers,
@@ -85,14 +86,16 @@ class Stir:
         )
         self.latest_joint_state = JointState()
 
-        self._obserbation_index = np.array([], dtype=np.uint8)
+        self._ingredient_index = np.array([], dtype=np.uint8)
         topic: LinkStates = rospy.wait_for_message(
             LINK_STATES, LinkStates, timeout=1
         )
         for i, name in enumerate(topic.name):
             if INGREDIENTS_MODEL in name:
-                self._obserbation_index = np.append(self._obserbation_index, i)
-        if self._obserbation_index.shape != (self.num_ingredients,):
+                self._ingredient_index = np.append(self._ingredient_index, i)
+            elif TOOL_LINK in name:
+                self._tool_index = i
+        if self._ingredient_index.shape != (self.num_ingredients,):
             rospy.logerr(
                 f"NUM_INGREDIENTS(: {self.num_ingredients}) and \
                 number of ingredients in link_states(: {i}) must be equal"
@@ -203,6 +206,24 @@ class Stir:
         self._arm.set_named_target("init")
         self._arm.go(wait=True)
 
+        init_pose: Pose = rospy.wait_for_message(
+            LINK_STATES,
+            LinkStates,
+            timeout=2,
+        ).pose[self._tool_index]
+        self._init_pose = np.array(
+            [
+                init_pose.position.x,
+                init_pose.position.y,
+                init_pose.position.z,
+                init_pose.orientation.x,
+                init_pose.orientation.y,
+                init_pose.orientation.z,
+                init_pose.orientation.w,
+            ]
+        )
+        self.tmp = init_pose
+
         if self._moveit_error:
             rospy.logerr("failed to go init pose")
 
@@ -223,17 +244,31 @@ class Stir:
 
     def _get_pose_from_array(self, array: np.ndarray) -> Pose:
         pose = Pose()
-        pose.position.x = array[0]
-        pose.position.y = array[1]
-        pose.position.z = array[2]
-        pose.orientation.x = array[3]
-        pose.orientation.y = array[4]
-        pose.orientation.z = array[5]
-        pose.orientation.w = array[6]
+        pose.position.x = array[0] + self._init_pose[0]
+        pose.position.y = array[1] + self._init_pose[1]
+        pose.position.z = array[2] + self._init_pose[2]
+        q = tf.transformations.quaternion_multiply(
+            self._init_pose[3:], array[3:]
+        )
+        pose.orientation.x = q[0]
+        pose.orientation.y = q[1]
+        pose.orientation.z = q[2]
+        pose.orientation.w = q[3]
+        print(self.tmp)
+        return self.tmp
         return pose
+        # position:
+        # x: 0.32317807894398554
+        # y: -1.3727368755863023
+        # z: -0.0873769114745279
+        # rientation:
+        # x: -2.69592164270129e-
+        # y: 0.960747075773476
+        # z: -1.2789979713273116
+        # w: 0.2774257670474467
 
     def _link_states_callback(self, states: LinkStates) -> None:
-        for i, obs_i in enumerate(self._obserbation_index):
+        for i, obs_i in enumerate(self._ingredient_index):
             self._ingredient_buffer[i * 7] = states.pose[obs_i].position.x
             self._ingredient_buffer[i * 7 + 1] = states.pose[obs_i].position.y
             self._ingredient_buffer[i * 7 + 2] = states.pose[obs_i].position.z
@@ -307,7 +342,7 @@ class Stir:
     def _publish_target_pose(
         self, pose: np.ndarray, action_pose_flag: np.ndarray
     ) -> None:
-        # TODO(sara): action_pose_flag
+        # TODO(sara): delete action_pose_flag
         target_pose = self._get_pose_from_array(pose)
         target_pose_stampd = PoseStamped()
         target_pose_stampd.header.stamp = rospy.Time.now()
@@ -318,6 +353,7 @@ class Stir:
     def _publish_twist_stamped(
         self, twist: np.ndarray, action_pose_flag: np.ndarray
     ) -> None:
+        # TODO(sara): delete acton_pose_flag
         twist_stamped = TwistStamped()
         twist_stamped.header.stamp = rospy.Time.now()
         twist_stamped.header.frame_id = WORLD

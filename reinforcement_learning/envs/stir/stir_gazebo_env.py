@@ -142,7 +142,7 @@ class StirGazeboEnv(gym.Env):
 
                 # TODO(sara): self._stir_env.observationingredient_pose[:3]?
                 reward, terminated = self._stir_env.get_reward(
-                    self._get_observation()
+                    self._get_observation(), reset_mode=True
                 )
                 if not terminated and reward < _THRESHOLD_RESET_REWARD:
                     break
@@ -185,10 +185,10 @@ class StirGazeboEnv(gym.Env):
         self._previous_sec = sec
         return observation
 
-    def check_collision_with_bowl(
-        self, end_pose: np.ndarray, base_pose: np.ndarray
-    ) -> bool:
+    def check_collision_with_bowl(self) -> bool:
         # TODO(sara): do the test
+        end_pose = self.stir.get_tool_pose()[0]
+        base_pose = self.stir.get_gripper_pose()[0]
         bowl_top_position_z = (
             self._init_tool_pose[2]
             + self._bowl["height"]

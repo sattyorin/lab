@@ -9,6 +9,7 @@
 #include <moveit_servo/servo.h>
 #include <moveit_servo/status_codes.h>
 #include <ros/ros.h>
+#include <sensor_msgs/JointState.h>
 #include <std_msgs/Int8.h>
 #include <std_srvs/Empty.h>
 
@@ -27,6 +28,12 @@ PoseTracker::PoseTracker()
       planning_scene_monitor_(
           std::make_shared<planning_scene_monitor::PlanningSceneMonitor>(
               "robot_description")) {
+  // TODO(sara): check waiting topic is correct
+  // if it didn't wait,
+  // the order of command_out_topic's index will be out of order
+  ros::topic::waitForMessage<sensor_msgs::JointState>("/crane_x7/joint_states",
+                                                      ros::Duration(10));
+
   ROS_INFO("initialization PoseTracker");
   spinner_.start();
 

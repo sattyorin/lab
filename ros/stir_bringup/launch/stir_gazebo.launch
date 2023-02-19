@@ -57,12 +57,14 @@
     <arg name="use_effort_gripper" value="$(arg use_effort_gripper)" />
   </include>
 
+  <!-- TODO(sara): change name space to crane_x7_with_tools -->
   <group ns="/crane_x7" if="$(eval arg('arm_controller_type') == 'position')">
     <rosparam file="$(arg position_controller_config_file)" command="load"/>
     <node name="ros_control_stopped_spawner" pkg="controller_manager" type="spawner"
       args="--stopped $(arg stopped_position_controllers)" output="screen" respawn="false" />
   </group>
 
+  <!-- TODO(sara): change name space to crane_x7_with_tools -->
   <group ns="/crane_x7" if="$(eval arg('arm_controller_type') == 'velocity')">
     <rosparam file="$(arg velocity_controller_config_file)" command="load"/>
     <node name="ros_control_stopped_spawner" pkg="controller_manager" type="spawner"
@@ -79,6 +81,7 @@
     <arg name="verbose" value="true" />
   </include>
 
+  <!-- TODO(sara): change name space to crane_x7_with_tools -->
   <node name="urdf_spawner"
         pkg="gazebo_ros"
         type="spawn_model"

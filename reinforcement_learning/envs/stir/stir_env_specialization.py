@@ -1,6 +1,7 @@
 import numpy as np
 from envs.stir.i_stir_env import IStirEnv
 from envs.stir.stir_env0 import StirEnv0
+from envs.stir.stir_env_xyz_position import StirEnvXYZPosition
 from envs.stir.stir_env_xyz_position_ingredients8_keep_moving_ingredients import (
     StirEnvXYZPositionIngredients8KeepMovingIngredients,
 )
@@ -58,6 +59,10 @@ def get_specialization(
         )
     elif name == "StirEnvXYPositionIngredients8StirWithMovingIngredients":
         return StirEnvXYPositionIngredients8StirWithMovingIngredients(
+            init_tool_pose, num_ingredients, check_collision_with_bowl
+        )
+    elif name == "StirEnvXYZPosition":
+        return StirEnvXYZPosition(
             init_tool_pose, num_ingredients, check_collision_with_bowl
         )
     else:

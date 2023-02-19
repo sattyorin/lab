@@ -23,6 +23,7 @@ class IStirEnv:
         observation_tool_velocity: [x, y, z, roll, pitch, yaw]
         observation_ingredient_position: [x, y, z]
         """
+        # TODO(sara): observation_tool_pose shape is 6!
         if observation_tool_pose.shape != (7,):
             raise ValueError(
                 f"observation_tool_pose shape should be (7,), but is {observation_tool_pose.shape}"

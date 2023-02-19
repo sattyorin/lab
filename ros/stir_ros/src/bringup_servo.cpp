@@ -19,6 +19,9 @@ BringupServo::BringupServo()
       planning_scene_monitor_(
           std::make_shared<planning_scene_monitor::PlanningSceneMonitor>(
               "robot_description")) {
+  // TODO(sara): check waiting topic is correct
+  ros::topic::waitForMessage<sensor_msgs::JointState>("/crane_x7/joint_states",
+                                                      ros::Duration(10));
   ROS_INFO("initialization BringupServo");
   spinner_.start();
 

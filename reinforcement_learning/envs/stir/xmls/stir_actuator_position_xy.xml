@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <mujoco>
   <actuator>
-    <position name="x" site="site_tools" refsite="world" gear="1 0 0 0 0 0" kp="100" />
-    <position name="y" site="site_tools" refsite="world" gear="0 1 0 0 0 0" kp="100" />
+    <position name="x" site="site_tools" refsite="world" gear="1 0 0 0 0 0" kp="200" />
+    <position name="y" site="site_tools" refsite="world" gear="0 1 0 0 0 0" kp="200" />
   </actuator>
 </mujoco>

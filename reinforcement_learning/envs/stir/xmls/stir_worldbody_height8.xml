@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<mujoco>
+  <light name="light0" directional="true" diffuse=".3 .3 .3" pos="-1 -1 1" dir="1 1 -1" />
+  <light name="light1" directional="true" diffuse=".3 .3 .3" pos="1 -1 1" dir="-1 1 -1" />
+  <light name="light2" directional="true" diffuse=".3 .3 .3" pos="0 1 1" dir="0 -1 -1" />
+  <site name="world" pos="0 0 0" size="0.0001" />
+  <geom name="floor" pos="0 0 0.008" size="1.0 1.0 0.00001" type="plane" condim="3" />
+  <!-- refer to https://github.com/deepmind/mujoco/blob/main/test/engine/testdata/refsite.xml -->
+  <body name="tools" pos="0 0 0.01">
+    <joint name="joint_tool_position_x" type="slide" pos="0 0 0" axis="1 0 0" range="-10.0 10.0" />
+    <joint name="joint_tool_position_y" type="slide" pos="0 0 0" axis="0 1 0" range="-10.0 10.0" />
+    <joint name="joint_tool_position_z" type="slide" pos="0 0 0" axis="0 0 1" range="-10.0 10.0" />
+    <joint type="ball" />
+    <site name="site_tools" pos="0 0 0" size="0.0001" />
+    <geom name="geom_tool1" type="cylinder" size="0.002" fromto="0.012 0 0.27 0.006 0 0" />
+    <geom name="geom_tool2" type="cylinder" size="0.002" fromto="-0.012 0 0.27 -0.006 0 0" />
+  </body>
+</mujoco>

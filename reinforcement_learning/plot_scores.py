@@ -36,10 +36,15 @@ def main():
             fpath = os.path.join(fpath, "scores.txt")
         assert os.path.exists(fpath)
         scores = pd.read_csv(fpath, delimiter="\t")
-        plt.plot(scores["steps"], scores["mean"], label=label)
+        # plt.plot(scores["steps"], scores["mean"], label=label)
+        plt.plot(
+            scores["episodes"], scores["mean"], label=label, color="yellowgreen"
+        )
+        # plt.plot(scores["episodes"], scores["max"], label="max")
 
-    plt.xlabel("steps")
-    plt.ylabel("score")
+    # plt.xlabel("steps")
+    plt.xlabel("episodes")
+    plt.ylabel("total reward")
     plt.legend(loc="best")
     if args.title:
         plt.title(args.title)

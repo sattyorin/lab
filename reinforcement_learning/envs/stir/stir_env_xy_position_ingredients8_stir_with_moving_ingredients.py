@@ -10,7 +10,7 @@ from gym.spaces import Box
 _TARGET_VELOCITY = 0.03
 
 
-class StirEnvXYZPositionIngredients8StirWithMovingIngredients(IStirEnv):
+class StirEnvXYPositionIngredients8StirWithMovingIngredients(IStirEnv):
     def __init__(
         self,
         init_tool_pose: np.ndarray,
@@ -26,10 +26,10 @@ class StirEnvXYZPositionIngredients8StirWithMovingIngredients(IStirEnv):
         action_is_position = True
         action_is_velocity = False
         observation_tool_pose = np.array(
-            [True, True, True, False, False, False, False]
+            [True, True, False, False, False, False, False]
         )
         observation_tool_velocity = np.array(
-            [True, True, True, False, False, False]
+            [True, True, False, False, False, False]
         )
         observation_ingredient_pose = np.array(
             [True, True, False, False, False, False, False]
@@ -47,8 +47,8 @@ class StirEnvXYZPositionIngredients8StirWithMovingIngredients(IStirEnv):
         # action_low = action_low_relative + init_tool_euler_pose
         # action_high = action_high_relative + init_tool_euler_pose
 
-        action_low = np.array([-1.0, -1.0, 0.0])
-        action_high = np.array([1.0, 1.0, 0.014])  # ingredient_height
+        action_low = np.array([-1.0, -1.0])
+        action_high = np.array([1.0, 1.0])  # ingredient_height
 
         action_space = Box(
             low=action_low,
@@ -93,19 +93,13 @@ class StirEnvXYZPositionIngredients8StirWithMovingIngredients(IStirEnv):
         )
         self._previous_reward = 0.0
         self._total_reward_diff = 3.0
-        self._max_reward = 0.0
-        self._done = False
 
     def get_controller_input(self, action: np.ndarray) -> np.ndarray:
-        a = (
-            self._bowl["radius_top"] - self._bowl["radius_bottom"]
-        ) / self._bowl["height"] * action[2] + self._bowl["radius_bottom"]
 
         return np.array(
             [
-                a * action[0],
-                a * action[1],
-                action[2] - self._bowl["bottom_to_init_z"],
+                self._bowl["radius_top"] * action[0],
+                self._bowl["radius_top"] * action[1],
             ]
         )  # for mujoco?
 
@@ -133,26 +127,26 @@ class StirEnvXYZPositionIngredients8StirWithMovingIngredients(IStirEnv):
         # -------------------------------------------------------
 
         # -------------------------------------------------------
-        # if self._previous_ingredient_positions is not None:
-        #     reward_array_keep_moving_ingredients = (
-        #         stir_utils.get_reward_array_keep_moving_ingredients(
-        #             ingredient_positions.reshape(
-        #                 -1, self._length_ingredient_pose
-        #             )[:, : self._dimension_ingredient_distance],
-        #             self._previous_ingredient_positions.reshape(
-        #                 -1, self._length_ingredient_pose
-        #             )[:, : self._dimension_ingredient_distance],
-        #             self._bowl["radius_bottom"] * 0.02,
-        #         )
-        #     )
-        #     self._total_reward_array_keep_moving_ingredients += (
-        #         reward_array_keep_moving_ingredients
-        #     )
-        #     reward_keep_moving_ingredients = np.mean(
-        #         reward_array_keep_moving_ingredients
-        #     )
-        # else:
-        #     reward_keep_moving_ingredients = 0.0
+        if self._previous_ingredient_positions is not None:
+            reward_array_keep_moving_ingredients = (
+                stir_utils.get_reward_array_keep_moving_ingredients(
+                    ingredient_positions.reshape(
+                        -1, self._length_ingredient_pose
+                    )[:, : self._dimension_ingredient_distance],
+                    self._previous_ingredient_positions.reshape(
+                        -1, self._length_ingredient_pose
+                    )[:, : self._dimension_ingredient_distance],
+                    self._bowl["radius_bottom"] * 0.02,
+                )
+            )
+            self._total_reward_array_keep_moving_ingredients += (
+                reward_array_keep_moving_ingredients
+            )
+            reward_keep_moving_ingredients = np.mean(
+                reward_array_keep_moving_ingredients
+            )
+        else:
+            reward_keep_moving_ingredients = 0.0
 
         # -------------------------------------------------------
 
@@ -203,7 +197,6 @@ class StirEnvXYZPositionIngredients8StirWithMovingIngredients(IStirEnv):
 
         if reward > 1.9:
             # print(f"{reward}: {self._num_step} done")
-            self._done = True
             return 1000.0, True
 
         self._total_reward_diff += abs(self._previous_reward - reward)
@@ -211,27 +204,24 @@ class StirEnvXYZPositionIngredients8StirWithMovingIngredients(IStirEnv):
             return reward, True
         self._previous_reward = reward
 
-        # reward_with_keep_moving = reward + reward_keep_moving_ingredients
+        reward_with_keep_moving = reward + reward_keep_moving_ingredients
 
-        # if reward < 0.7:
-        #     return reward_with_keep_moving, True
+        if reward < 0.7:
+            return reward_with_keep_moving, True
 
-        # if (
-        #     sum(
-        #         self._total_reward_array_keep_moving_ingredients
-        #         / (self._num_step + 1)
-        #         > 0.05
-        #     )
-        #     < 2
-        # ):
-        #     return reward_with_keep_moving, True
+        if (
+            sum(
+                self._total_reward_array_keep_moving_ingredients
+                / (self._num_step + 1)
+                > 0.05
+            )
+            < 2
+        ):
+            return reward_with_keep_moving, True
 
-        # if reset_mode:
-        #     return reward, False
-        # return reward_with_keep_moving, False
-
-        self._max_reward = max(reward, self._max_reward)
-        return reward, False
+        if reset_mode:
+            return reward, False
+        return reward_with_keep_moving, False
 
     def step_variables(self, observation: np.ndarray) -> None:
         self._previous_ingredient_positions = observation[
@@ -249,8 +239,6 @@ class StirEnvXYZPositionIngredients8StirWithMovingIngredients(IStirEnv):
         )
         self._previous_reward = 0.0
         self._total_reward_diff = 3.0
-        self._max_reward = 0.0
-        self._done = False
 
     def detect_touch(self, ingredient_positions: np.ndarray) -> bool:
         if (

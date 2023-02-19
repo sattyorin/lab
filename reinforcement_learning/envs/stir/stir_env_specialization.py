@@ -17,6 +17,9 @@ from envs.stir.stir_env_xyz_position_move_tool import StirEnvXYZPositionMoveTool
 from envs.stir.stir_env_xyz_velocity_ingredient4 import (
     StirEnvXYZVelocityIngredient4,
 )
+from envs.stir.stir_env_xy_position_ingredients8_stir_with_moving_ingredients import (
+    StirEnvXYPositionIngredients8StirWithMovingIngredients,
+)
 
 
 def get_specialization(
@@ -51,6 +54,10 @@ def get_specialization(
         )
     elif name == "StirEnvXYZPositionIngredients8StirWithMovingIngredients":
         return StirEnvXYZPositionIngredients8StirWithMovingIngredients(
+            init_tool_pose, num_ingredients, check_collision_with_bowl
+        )
+    elif name == "StirEnvXYPositionIngredients8StirWithMovingIngredients":
+        return StirEnvXYPositionIngredients8StirWithMovingIngredients(
             init_tool_pose, num_ingredients, check_collision_with_bowl
         )
     else:

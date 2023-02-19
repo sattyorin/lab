@@ -5,7 +5,6 @@ from typing import Tuple
 import moveit_commander
 import numpy as np
 import rospy
-import tf
 import tf2_ros
 from controller_manager_msgs.srv import (
     ListControllers,
@@ -222,7 +221,6 @@ class Stir:
                 init_pose.orientation.w,
             ]
         )
-        self.tmp = init_pose
 
         if self._moveit_error:
             rospy.logerr("failed to go init pose")
@@ -244,28 +242,13 @@ class Stir:
 
     def _get_pose_from_array(self, array: np.ndarray) -> Pose:
         pose = Pose()
-        pose.position.x = array[0] + self._init_pose[0]
-        pose.position.y = array[1] + self._init_pose[1]
-        pose.position.z = array[2] + self._init_pose[2]
-        q = tf.transformations.quaternion_multiply(
-            self._init_pose[3:], array[3:]
-        )
-        pose.orientation.x = q[0]
-        pose.orientation.y = q[1]
-        pose.orientation.z = q[2]
-        pose.orientation.w = q[3]
-        print(self.tmp)
-        return self.tmp
+        pose.position.x = self._init_pose[0] + array[0]
+        pose.position.y = self._init_pose[1] + array[1]
+        pose.position.z = (
+            self._init_pose[2] + array[2] - 0.013
+        )  # TODO(sara): modify offset
+        pose.orientation.w = 1.0
         return pose
-        # position:
-        # x: 0.32317807894398554
-        # y: -1.3727368755863023
-        # z: -0.0873769114745279
-        # rientation:
-        # x: -2.69592164270129e-
-        # y: 0.960747075773476
-        # z: -1.2789979713273116
-        # w: 0.2774257670474467
 
     def _link_states_callback(self, states: LinkStates) -> None:
         for i, obs_i in enumerate(self._ingredient_index):

@@ -113,6 +113,12 @@ def main():
         default=logging.INFO,
         help="Level of the root logger.",
     )
+    parser.add_argument(
+        "--is_train_eval_env_identical",
+        type=bool,
+        default=False,
+        help="Whether the learning environment and the evaluation environment are identical.",
+    )
     args = parser.parse_args()
 
     logging.basicConfig(level=args.log_level)
@@ -228,11 +234,12 @@ def main():
                 )[0]
             )
 
-    eval_env = make_env(test=False)
+    eval_env = env
+    if args.is_train_eval_env_identical:
+        eval_env = make_env(test=False)
     if args.demo:
         eval_stats = experiments.eval_performance(
             env=eval_env,
-            # env=env,
             agent=agent,
             n_steps=None,
             n_episodes=args.eval_n_runs,
@@ -257,7 +264,6 @@ def main():
             env=env,
             steps=args.steps,
             eval_env=eval_env,
-            # eval_env=env,
             eval_n_steps=None,
             eval_n_episodes=args.eval_n_runs,
             eval_interval=args.eval_interval,

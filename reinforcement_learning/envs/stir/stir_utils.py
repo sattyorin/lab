@@ -167,10 +167,11 @@ def get_reward_distance_between_two_centroids(
 def _get_delaunay_neighbour_indices(tri: Delaunay) -> np.ndarray:
     """
     Fine each pair of neighbouring vertices in the delaunay triangulation.
-    :param vertices: The vertices of the points to perform Delaunay triangulation on
-    :return: The pairs of indices of vertices
+        arg:
+            Delaunay
+        return:
+            np.ndarray: The pairs of indices of vertices
     """
-    # tri = Delaunay(vertices)
     spacing_indices, neighbours = tri.vertex_neighbor_vertices
     ixs = np.zeros((2, len(neighbours)), dtype=int)
     np.add.at(
@@ -185,16 +186,16 @@ def _get_delaunay_neighbour_indices(tri: Delaunay) -> np.ndarray:
 def get_distance_array_delaunay(ingredient_positions: np.ndarray) -> np.ndarray:
     tri = Delaunay(ingredient_positions)
     index1, index2 = _get_delaunay_neighbour_indices(tri)
-    matrix = np.zeros((tri.npoints, tri.npoints), dtype=int)
+    matrix = np.zeros((tri.npoints, tri.npoints), dtype=bool)
     for i1, i2 in zip(index1, index2):
-        matrix[i1, i2] = 1
+        matrix[i1, i2] = True
     for i1, i2 in get_deleted_line(ingredient_positions, tri)[0]:
-        matrix[i1, i2] = 0
-        matrix[i2, i1] = 0
+        matrix[i1, i2] = False
+        matrix[i2, i1] = False
     index1, index2 = [], []
     for i in range(tri.npoints - 1):
         for j in range(i + 1, tri.npoints):
-            if matrix[i, j] == 1:
+            if matrix[i, j]:
                 index1.append(i)
                 index2.append(j)
     return np.linalg.norm(
@@ -205,14 +206,19 @@ def get_distance_array_delaunay(ingredient_positions: np.ndarray) -> np.ndarray:
 def get_deleted_line(
     ingredient_positions: np.ndarray, tri: Delaunay
 ) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    The number of lines is not constant, so adjust the number of lines
+    so that they are constant.
+    """
     # TODO(sara): chaos
-    # tri = Delaunay(ingredient_positions)
     triangles = ingredient_positions[tri.simplices]
     if tri.nsimplex > tri.npoints - 2:
         max_angles_triangle = np.zeros(tri.nsimplex)
         max_angle_index_array_triangle = []
         for i_triangle in range(tri.nsimplex):
             triangle = triangles[i_triangle]
+
+            # get the norm of each side
             vec = np.array(
                 [
                     [
@@ -237,6 +243,7 @@ def get_deleted_line(
                 ]
             )
 
+            # get the angle of each corner
             angles = np.zeros(3)
             index_array = np.array([[1, 2], [0, 2], [0, 1]])
             for i, index in enumerate(index_array):
@@ -246,19 +253,23 @@ def get_deleted_line(
                     inner = np.inner(vec[index[0]], vec[index[1]])
                 cos_theta = inner / (norms[index[0]] * norms[index[1]])
                 angles[i] = np.arccos(cos_theta)
+
             max_angle_index_array_arg = np.argmax(angles)
             max_angles_triangle[i_triangle] = angles[max_angle_index_array_arg]
             max_angle_index_array_triangle.append(
                 index_array[max_angle_index_array_arg]
             )
         sort_angle_triangle_index = np.argsort(max_angles_triangle)
+
+        # get the opposite side of the angle with the largest angle
         ret = []
-        sub_ret = []
+        sub_ret = [sort_angle_triangle_index[-1]]
         vertices = ConvexHull(ingredient_positions).vertices
         for triangle_index in sort_angle_triangle_index[::-1]:
             points = tri.simplices[triangle_index][
                 max_angle_index_array_triangle[triangle_index]
             ]
+            # only the outermost point of the convex hull can be erased
             if not (points[0] in vertices and points[1] in vertices):
                 continue
             ret.append(points)

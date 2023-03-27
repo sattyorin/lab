@@ -1,6 +1,9 @@
 import numpy as np
 from envs.stir.i_stir_env import IStirEnv
 from envs.stir.stir_env0 import StirEnv0
+from envs.stir.stir_env_xy_position_ingredients8_stir_with_moving_ingredients import (
+    StirEnvXYPositionIngredients8StirWithMovingIngredients,
+)
 from envs.stir.stir_env_xyz_position import StirEnvXYZPosition
 from envs.stir.stir_env_xyz_position_ingredients8_keep_moving_ingredients import (
     StirEnvXYZPositionIngredients8KeepMovingIngredients,
@@ -17,9 +20,6 @@ from envs.stir.stir_env_xyz_position_ingredients8_stir_with_moving_ingredients i
 from envs.stir.stir_env_xyz_position_move_tool import StirEnvXYZPositionMoveTool
 from envs.stir.stir_env_xyz_velocity_ingredient4 import (
     StirEnvXYZVelocityIngredient4,
-)
-from envs.stir.stir_env_xy_position_ingredients8_stir_with_moving_ingredients import (
-    StirEnvXYPositionIngredients8StirWithMovingIngredients,
 )
 
 

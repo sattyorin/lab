@@ -1,9 +1,18 @@
 #!/bin/bash
 
-DIR=$(cd $(dirname $0); pwd)
+cd $(dirname $0)/..
 
-# LATEST_FILE="`pwd`/`ls -lt *.txt | head -n 1 | gawk '{print $9}'`"
+LATEST_FILE=$(ls -t results| head -n 1)
+echo $LATEST_FILE
 
-# python3 ../train_ddpg.py \
-#         --load results/ee50e9abd77b44b94eb8a7d2c20ffdafd3810afc-8056d535-c33ee72c/1000000_finish/ \
-#         --demo
+LATEST_DIRECTORY=$(find results/$LATEST_FILE \
+                    -mindepth 1 \
+                    -maxdepth 1 \
+                    -type d \
+                    -printf '%T@ %p\n' | sort -n -r | head -n 1 | awk '{print $2}')
+echo $LATEST_DIRECTORY
+
+# TODO(sara): execute script
+python3 train_ddpg.py \
+        --load $LATEST_DIRECTORY \
+        --demo

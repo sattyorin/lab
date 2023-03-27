@@ -7,3 +7,6 @@
 [submodule "bowl_sdf_generator"]
 	path = bowl_sdf_generator
 	url = git@github.com:sattyorin/bowl_sdf_generator.git
+[submodule "moveit"]
+	path = moveit
+	url = git@github.com:ros-planning/moveit.git

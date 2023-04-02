@@ -11,8 +11,17 @@ LATEST_DIRECTORY=$(find results/$LATEST_FILE \
                     -type d \
                     -printf '%T@ %p\n' | sort -n -r | head -n 1 | awk '{print $2}')
 echo $LATEST_DIRECTORY
+# TODO(sara): empty check LATEST_DIRECTORY
 
-# TODO(sara): execute script
+env=$(jq -r '.env' results/$LATEST_FILE/args.txt)
+specialization=$(jq -r '.specialization' results/$LATEST_FILE/args.txt)
+xml=$(jq -r '.xml' results/$LATEST_FILE/args.txt)
+is_train_eval_env_identical=$(jq -r '.is_train_eval_env_identical' results/$LATEST_FILE/args.txt)
+
 python3 train_ddpg.py \
+        --env $env \
+        --specialization $specialization  \
+        --xml $xml \
+        --is_train_eval_env_identical $is_train_eval_env_identical \
         --load $LATEST_DIRECTORY \
         --demo

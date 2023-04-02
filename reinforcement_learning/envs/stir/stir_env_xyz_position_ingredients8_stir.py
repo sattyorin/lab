@@ -95,6 +95,7 @@ class StirEnvXYZPositionIngredients8Stir(IStirEnv):
         self._total_reward_diff = 3.0
 
     def get_controller_input(self, action: np.ndarray) -> np.ndarray:
+        # TODO(sara): use calculate_position_from_hight
         a = (
             self._bowl["radius_top"] - self._bowl["radius_bottom"]
         ) / self._bowl["height"] * action[2] + self._bowl["radius_bottom"]
@@ -107,7 +108,9 @@ class StirEnvXYZPositionIngredients8Stir(IStirEnv):
             ]
         )  # for mujoco?
 
-    def get_reward(self, observation: np.ndarray) -> Tuple[float, bool]:
+    def get_reward(
+        self, observation: np.ndarray, reset_mode: bool = False
+    ) -> Tuple[float, bool]:
         # tool_pose = observation[: self._length_tool_pose]
         # tool_velocity = observation[
         #     self._length_tool_pose : self._length_tool_pose

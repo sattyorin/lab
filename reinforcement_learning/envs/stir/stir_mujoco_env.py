@@ -142,8 +142,6 @@ class StirMujocoEnv(MujocoEnv, utils.EzPickle):
         if self.render_mode == "human":
             self.render()
 
-        # print(self.num_step / 40)
-
         return observation, reward, terminated, False, info
 
     def reset_model(self) -> np.ndarray:

@@ -33,17 +33,11 @@ def main():
         "--env",
         type=str,
         default="stir-v0",
-        # default="stir_gazebo-v0",
-        # default="Hopper-v4",
         help="OpenAI Gym MuJoCo env to perform algorithm on.",
     )
     parser.add_argument(
         "--specialization",
         type=str,
-        # default="StirEnvXYZPositionIngredients8MoveTool",
-        # default="StirEnvXYZPositionIngredients8Stir",
-        # default="StirEnvXYZPositionIngredients8KeepMovingIngredients",
-        # default="StirEnvXYZVelocityIngredient4",
         default="StirEnvXYZPositionIngredients8StirWithMovingIngredients",
         help="StirEnv...",
     )
@@ -65,7 +59,7 @@ def main():
     parser.add_argument(
         "--steps",
         type=int,
-        default=40**6,
+        default=10**6,
         help="Total number of timesteps to train the agent.",
     )
     parser.add_argument(

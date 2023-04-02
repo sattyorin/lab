@@ -325,3 +325,25 @@ def get_penalty_large_control(action: np.ndarray) -> float:
 
 def get_penalty_small_control(action: np.ndarray) -> float:
     return np.reciprocal(np.sum(np.power(action, 2)))  # 14
+
+
+def calculate_position_from_hight(
+    x_ratio,
+    y_ratio,
+    hight,
+    bowl_radius_top,
+    bowl_radius_bottom,
+    bowl_hight,
+    bowl_bottom_to_init_z,
+):
+    max_radius = (
+        bowl_radius_top - bowl_radius_bottom
+    ) / bowl_hight * hight + bowl_radius_bottom
+
+    return np.array(
+        [
+            max_radius * x_ratio,
+            max_radius * y_ratio,
+            hight - bowl_bottom_to_init_z,
+        ]
+    )  # TODO(sara): for mujoco?

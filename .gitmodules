@@ -10,3 +10,6 @@
 [submodule "moveit"]
 	path = moveit
 	url = git@github.com:ros-planning/moveit.git
+[submodule "pfrl"]
+	path = pfrl
+	url = git@github.com:sattyorin/pfrl.git
